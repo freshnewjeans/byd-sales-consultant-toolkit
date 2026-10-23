@@ -15,7 +15,7 @@ A macOS-style toolkit that helps BYD Malaysia sales consultants build branded of
 
 ## Lineup (2026, editable)
 
-BYD ATTO 2 · ATTO 3 (Ultra / Premium / Performance) · M6 · SEAL 6 · SEAL · SEALION 7 · DENZA D9 / B8 / Z9 GT
+BYD ATTO 2 · ATTO 3 (Ultra / Premium / Performance) · M6 · SEAL 6 · SEAL · SEALION 7 (Dynamic / Premium / Performance)
 
 ## Tech
 

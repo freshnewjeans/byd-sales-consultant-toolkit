@@ -308,14 +308,10 @@ const BASE = [
   {id:'sealperf',   brand:'BYD',   name:'SEAL',          variant:'Performance', price:'', range:'520 km', battery:'82.5 kWh', power:'390 kW / 670 Nm', accel:'3.8 s', charge:'11 / 150 kW'},
   {id:'sl7dyn',     brand:'BYD',   name:'SEALION 7',     variant:'Dynamic', price:163800, range:'650 km', battery:'91.39 kWh', power:'390 kW / 690 Nm', accel:'4.5 s', charge:'11 / 230 kW'},
   {id:'sl7prem',    brand:'BYD',   name:'SEALION 7',     variant:'Premium', price:188800, range:'650 km', battery:'91.39 kWh', power:'390 kW / 690 Nm', accel:'4.5 s', charge:'11 / 230 kW'},
-  {id:'sl7perf',    brand:'BYD',   name:'SEALION 7',     variant:'Performance', price:203800, range:'650 km', battery:'91.39 kWh', power:'390 kW / 690 Nm', accel:'4.5 s', charge:'11 / 230 kW'},
-  {id:'d9adv',      brand:'DENZA', name:'D9',            variant:'Advance', price:299000, range:'600 km', battery:'93 kWh', power:'275 kW / 470 Nm', accel:'6.9 s', charge:'11 / 166 kW'},
-  {id:'d9prem',     brand:'DENZA', name:'D9',            variant:'Premium', price:'', range:'600 km', battery:'93 kWh', power:'275 kW / 470 Nm', accel:'6.9 s', charge:'11 / 166 kW'},
-  {id:'b8',         brand:'DENZA', name:'B8',            variant:'', price:'', range:'', battery:'', power:'', accel:'', charge:''},
-  {id:'z9gt',       brand:'DENZA', name:'Z9 GT',         variant:'', price:'', range:'', battery:'', power:'', accel:'', charge:''}
+  {id:'sl7perf',    brand:'BYD',   name:'SEALION 7',     variant:'Performance', price:203800, range:'650 km', battery:'91.39 kWh', power:'390 kW / 690 Nm', accel:'4.5 s', charge:'11 / 230 kW'}
 ];
 
-const LS = { lib:'byd_toolkit_lib_v1', leads:'byd_toolkit_leads_v1', me:'byd_toolkit_me_v1', prefs:'byd_toolkit_prefs_v1' };
+const LS = { lib:'byd_toolkit_lib_v2', leads:'byd_toolkit_leads_v1', me:'byd_toolkit_me_v1', prefs:'byd_toolkit_prefs_v1' };
 const MYR = n => (n===''||n==null||isNaN(n)) ? '—' : 'RM ' + Math.round(n).toLocaleString('en-MY');
 
 let LIB = load(LS.lib, null) || deep(BASE);
@@ -496,7 +492,7 @@ function drawPoster(o){
   ctx.fillStyle='#ffffff'; ctx.font='700 34px "SF Pro Display",-apple-system,Segoe UI,Arial'; ctx.textAlign='left';
   ctx.fillText('BUILD YOUR DREAMS',70,70);
   ctx.font='600 22px -apple-system,Segoe UI,Arial'; ctx.fillStyle='rgba(255,255,255,.6)';
-  ctx.fillText(m.brand==='DENZA'?'DENZA · MALAYSIA':'BYD · MALAYSIA',70,112);
+  ctx.fillText('BYD · MALAYSIA',70,112);
   ctx.fillStyle='#007AFF'; const rr=170; ctx.beginPath(); ctx.arc(PW-90,75,34,0,7); ctx.fill();
   ctx.fillStyle='#fff'; ctx.font='700 30px -apple-system,Arial'; ctx.textAlign='center'; ctx.fillText('B',PW-90,88);
 
