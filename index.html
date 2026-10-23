@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BYD Sales Consultant Toolkit</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='24' height='24' rx='6' fill='%23007AFF'/><text x='12' y='17' font-size='14' font-family='Arial' font-weight='bold' text-anchor='middle' fill='white'>B</text></svg>">
+<style>
+  :root{
+    --bg:#ececec; --bg2:#f5f5f7; --panel:#ffffff; --ink:#1d1d1f; --mut:#6e6e73;
+    --line:rgba(0,0,0,.09); --line2:rgba(0,0,0,.14);
+    --blue:#007AFF; --blue2:#0A84FF; --green:#28a745; --red:#ff3b30; --amber:#ff9f0a;
+    --shadow:0 10px 30px rgba(0,0,0,.10),0 2px 8px rgba(0,0,0,.06);
+    --radius:14px;
+    --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:var(--font);background:linear-gradient(180deg,#e8e8ed,#f2f2f5);color:var(--ink);-webkit-font-smoothing:antialiased}
+  /* ===== macOS window frame ===== */
+  .win{display:flex;flex-direction:column;height:100vh;max-width:1440px;margin:0 auto}
+  .titlebar{display:flex;align-items:center;gap:12px;padding:12px 18px;background:rgba(250,250,252,.82);
+    backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
+    border-bottom:1px solid var(--line)}
+  .lights{display:flex;gap:8px}
+  .lights i{width:12px;height:12px;border-radius:50%;display:block}
+  .lights i:nth-child(1){background:#ff5f57;border:1px solid #e0443e}
+  .lights i:nth-child(2){background:#febc2e;border:1px solid #d89e24}
+  .lights i:nth-child(3){background:#28c840;border:1px solid #1fa532}
+  .tb-title{font-weight:600;font-size:13px;letter-spacing:.2px;color:var(--ink);display:flex;align-items:center;gap:8px}
+  .tb-title small{font-weight:400;color:var(--mut);font-size:12px}
+  .tb-right{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--mut)}
+  .tb-credit{font-size:11px;color:var(--mut);background:rgba(0,122,255,.08);border:1px solid rgba(0,122,255,.18);
+    padding:4px 10px;border-radius:20px;font-weight:500}
+  .badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;background:rgba(0,122,255,.1);color:var(--blue)}
+  /* ===== layout ===== */
+  .body{display:flex;flex:1;overflow:hidden}
+  .sidebar{width:236px;flex:none;background:rgba(250,250,252,.6);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);border-right:1px solid var(--line);padding:16px 12px;overflow-y:auto}
+  .nav-label{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.8px;margin:16px 10px 6px;font-weight:600}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;cursor:pointer;
+    color:var(--ink);font-size:13.5px;font-weight:500;margin-bottom:2px;transition:background .15s}
+  .nav-item:hover{background:rgba(0,0,0,.05)}
+  .nav-item.active{background:var(--blue);color:#fff}
+  .nav-item svg{flex:none}
+  .main{flex:1;overflow-y:auto;padding:26px 30px 60px}
+  .view{display:none}
+  .view.active{display:block;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  h1{font-size:26px;font-weight:700;letter-spacing:-.3px;margin-bottom:4px}
+  .sub{color:var(--mut);font-size:13.5px;margin-bottom:22px}
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px;
+    box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .card h3{font-size:14px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .card h3 .hint{font-size:11px;color:var(--mut);font-weight:400}
+  .field{margin-bottom:13px}
+  .field label{display:block;font-size:12px;color:var(--mut);font-weight:500;margin-bottom:6px}
+  .field input[type=text],.field input[type=number],.field input[type=tel],.field select,.field textarea{
+    width:100%;padding:9px 12px;border:1px solid var(--line2);border-radius:9px;font-size:14px;font-family:inherit;
+    background:#fff;color:var(--ink);outline:none;transition:border .15s,box-shadow .15s}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,122,255,.18)}
+  .field .unit{position:relative}
+  .field .unit span{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--mut)}
+  .field .unit input{padding-right:40px}
+  .row{display:flex;gap:12px}
+  .row .field{flex:1}
+  .btn{display:inline-flex;align-items:center;gap:8px;background:var(--blue);color:#fff;border:none;border-radius:9px;
+    padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:filter .15s,transform .05s}
+  .btn:hover{filter:brightness(1.06)}
+  .btn:active{transform:scale(.98)}
+  .btn.ghost{background:#fff;color:var(--blue);border:1px solid rgba(0,122,255,.35)}
+  .btn.sec{background:rgba(0,0,0,.06);color:var(--ink);border:1px solid var(--line)}
+  .btn.green{background:#25d366}
+  .btn.sm{padding:7px 12px;font-size:13px}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+  /* chips / model picker */
+  .model-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+  .model-card{border:1px solid var(--line);border-radius:12px;padding:12px;cursor:pointer;background:#fff;transition:all .15s;position:relative}
+  .model-card:hover{border-color:var(--blue);box-shadow:0 4px 14px rgba(0,122,255,.14)}
+  .model-card.sel{border-color:var(--blue);background:rgba(0,122,255,.05);box-shadow:0 4px 14px rgba(0,122,255,.16)}
+  .model-card .m-brand{font-size:10px;font-weight:700;letter-spacing:.6px;color:var(--mut);text-transform:uppercase}
+  .model-card .m-name{font-size:15px;font-weight:700;margin:3px 0 2px}
+  .model-card .m-var{font-size:11.5px;color:var(--mut)}
+  .model-card .m-price{font-size:13px;font-weight:600;color:var(--blue);margin-top:8px}
+  .model-card .m-price.blank{color:var(--amber);font-weight:500}
+  .model-card .m-check{position:absolute;top:8px;right:8px;width:18px;height:18px;border-radius:50%;
+    border:1.5px solid var(--line2);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
+  .model-card.sel .m-check{background:var(--blue);border-color:var(--blue)}
+  /* poster */
+  .poster-wrap{display:flex;gap:24px;flex-wrap:wrap}
+  .poster-stage{flex:1;min-width:280px}
+  .poster-preview{width:280px;height:498px;border-radius:16px;overflow:hidden;box-shadow:var(--shadow);
+    background:#0d1b2e;margin:0 auto;position:relative}
+  .poster-preview canvas{width:100%;height:100%;display:block}
+  .poster-side{flex:1;min-width:300px;max-width:420px}
+  .stat{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+  .stat:last-child{border-bottom:none}
+  .stat .k{color:var(--mut)}
+  .stat .v{font-weight:600;font-variant-numeric:tabular-nums}
+  .stat .v.blue{color:var(--blue)}
+  .stat .v.big{font-size:22px;font-weight:800;color:var(--blue)}
+  .term-tabs{display:flex;gap:8px;margin:12px 0}
+  .term-tabs .t{flex:1;text-align:center;padding:9px;border:1px solid var(--line2);border-radius:9px;cursor:pointer;font-size:13px;font-weight:600}
+  .term-tabs .t.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+  /* compare */
+  .cmp-table{width:100%;border-collapse:collapse;font-size:13.5px}
+  .cmp-table th,.cmp-table td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left}
+  .cmp-table th{font-size:12px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+  .cmp-table .model-col{font-size:14px;font-weight:700}
+  .cmp-table td.hi{color:var(--blue);font-weight:700}
+  /* leads */
+  .lead-card{display:flex;align-items:center;gap:14px;padding:13px 16px;border:1px solid var(--line);border-radius:12px;background:#fff;margin-bottom:10px}
+  .lead-ava{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#007AFF,#0A84FF);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;flex:none}
+  .lead-body{flex:1;min-width:0}
+  .lead-name{font-weight:600;font-size:14.5px}
+  .lead-meta{font-size:12.5px;color:var(--mut);margin-top:2px}
+  .lead-status{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;flex:none}
+  .st-new{background:rgba(0,122,255,.1);color:var(--blue)}
+  .st-warm{background:rgba(255,159,10,.15);color:#c77d00}
+  .st-hot{background:rgba(255,59,48,.12);color:var(--red)}
+  .st-won{background:rgba(40,167,69,.14);color:var(--green)}
+  .st-due{background:rgba(255,59,48,.16);color:var(--red);box-shadow:0 0 0 1px rgba(255,59,48,.4) inset}
+  .lead-actions{display:flex;gap:6px}
+  .iconbtn{width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:#fff;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;color:var(--mut);transition:all .15s}
+  .iconbtn:hover{border-color:var(--blue);color:var(--blue)}
+  .iconbtn.danger:hover{border-color:var(--red);color:var(--red)}
+  .empty{padding:36px 20px;text-align:center;color:var(--mut);font-size:13.5px}
+  .empty b{display:block;color:var(--ink);font-size:15px;margin-bottom:4px}
+  /* toast */
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#1d1d1f;color:#fff;
+    padding:12px 20px;border-radius:12px;font-size:13.5px;opacity:0;pointer-events:none;transition:all .25s;z-index:99;box-shadow:var(--shadow)}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.35);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
+  .modal-bg.show{display:flex}
+  .modal{background:#fff;border-radius:16px;box-shadow:var(--shadow);max-width:430px;width:100%;padding:24px;max-height:88vh;overflow-y:auto}
+  .modal h3{font-size:17px;font-weight:700;margin-bottom:4px}
+  .modal .close{float:right;background:none;border:none;font-size:20px;cursor:pointer;color:var(--mut)}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:20px}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .kpi .n{font-size:24px;font-weight:800;letter-spacing:-.5px}
+  .kpi .l{font-size:12px;color:var(--mut);margin-top:2px}
+  .kpi .n.blue{color:var(--blue)} .kpi .n.green{color:var(--green)} .kpi .n.red{color:var(--red)}
+  .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+  .search{flex:1;min-width:180px;position:relative}
+  .search input{width:100%;padding:9px 12px 9px 34px;border:1px solid var(--line2);border-radius:9px;font-size:13.5px;font-family:inherit;outline:none}
+  .search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--mut)}
+  .foot{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);color:var(--mut);font-size:12px;
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .foot b{color:var(--ink)}
+  .pill{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(0,122,255,.1);color:var(--blue);letter-spacing:.3px}
+  @media(max-width:900px){
+    .sidebar{display:none}
+    .body{flex-direction:column}
+    .g2,.g3{grid-template-columns:1fr}
+    .main{padding:18px 16px 60px}
+    .poster-preview{width:230px;height:409px}
+  }
+</style>
+</head>
+<body>
+<div class="win">
+  <div class="titlebar">
+    <div class="lights"><i></i><i></i><i></i></div>
+    <div class="tb-title">BYD Sales Consultant Toolkit <small>· Malaysia</small></div>
+    <div class="tb-right">
+      <span class="badge" id="todayLabel">—</span>
+      <span class="tb-credit">Created &amp; Designed by Kevin Lim Fung Yen</span>
+    </div>
+  </div>
+  <div class="body">
+    <aside class="sidebar" id="sidebar">
+      <div class="nav-label">Workspace</div>
+      <div class="nav-item active" data-view="studio"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Offer Studio</div>
+      <div class="nav-item" data-view="compare"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H4v4M16 3h4v4M8 21H4v-4M16 21h4v-4M4 8v8M20 8v8M8 3v18M16 3v18"/></svg>Compare Models</div>
+      <div class="nav-item" data-view="tradein"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2M7 6l-1-1M17 6l1-1"/></svg>Trade-in Helper</div>
+      <div class="nav-label">Pipeline</div>
+      <div class="nav-item" data-view="leads"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.4"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5M16 4.2a3.4 3.4 0 010 6.6M18 15c1.9.8 3 2.4 3 4.6"/></svg>Lead Tracker <span id="leadCount" style="margin-left:auto;background:rgba(0,122,255,.12);color:var(--blue);font-size:11px;padding:1px 7px;border-radius:12px">0</span></div>
+      <div class="nav-label">Settings</div>
+      <div class="nav-item" data-view="library"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>Model &amp; Price Library</div>
+    </aside>
+    <main class="main" id="main">
+
+      <!-- ===== VIEW: STUDIO ===== -->
+      <section class="view active" id="view-studio">
+        <h1>Offer Studio</h1>
+        <p class="sub">Build a branded 9:16 offer poster and WhatsApp message in seconds.</p>
+        <div class="grid g2">
+          <div class="card">
+            <h3>1 · Choose a model</h3>
+            <div class="model-grid" id="studioModels"></div>
+          </div>
+          <div class="card">
+            <h3>2 · Set your offer <span class="hint">all fields editable</span></h3>
+            <div id="offerForm"><div class="empty">Select a model on the left to begin.</div></div>
+          </div>
+        </div>
+        <div style="margin-top:18px" id="posterArea"></div>
+      </section>
+
+      <!-- ===== VIEW: COMPARE ===== -->
+      <section class="view" id="view-compare">
+        <h1>Compare Models</h1>
+        <p class="sub">Put 2–3 models side by side so undecided buyers can see the difference instantly.</p>
+        <div class="card" style="margin-bottom:18px">
+          <h3>Select 2–3 models to compare</h3>
+          <div class="model-grid" id="cmpModels"></div>
+        </div>
+        <div id="cmpResult"></div>
+      </section>
+
+      <!-- ===== VIEW: TRADEIN ===== -->
+      <section class="view" id="view-tradein">
+        <h1>Trade-in Helper</h1>
+        <p class="sub">Show how trading in an old car drops the monthly payment — the fastest way to close a deal.</p>
+        <div class="grid g2">
+          <div class="card">
+            <h3>Scenario</h3>
+            <div class="field"><label>New BYD model</label><select id="tiModel"></select></div>
+            <div class="field"><label>Trade-in value (RM)</label><input type="number" id="tiValue" value="15000" min="0" step="500"></div>
+            <div class="field"><label>Down payment %</label><input type="number" id="tiDp" value="10" min="0" max="100" step="1"></div>
+            <div class="field"><label>Bank rate / year (%)</label><input type="number" id="tiRate" value="2.9" step="0.05"></div>
+            <div class="row">
+              <div class="field"><label>Cash rebate (RM)</label><input type="number" id="tiRebate" value="0" min="0" step="500"></div>
+              <div class="field"><label>Term</label><select id="tiTerm"><option value="60">5 years</option><option value="84" selected>7 years</option><option value="108">9 years</option></select></div>
+            </div>
+            <div class="btn-row"><button class="btn" id="tiCalc">Calculate impact</button></div>
+          </div>
+          <div class="card" id="tiResult"><div class="empty">Set the scenario and hit <b>Calculate impact</b>.</div></div>
+        </div>
+      </section>
+
+      <!-- ===== VIEW: LEADS ===== -->
+      <section class="view" id="view-leads">
+        <h1>Lead Tracker</h1>
+        <p class="sub">Never lose a customer. Track offers, set follow-up dates and get reminded when one is due.</p>
+        <div class="toolbar">
+          <div class="search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input type="text" id="leadSearch" placeholder="Search name, model, phone…"></div>
+          <button class="btn" id="addLeadBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>New lead</button>
+        </div>
+        <div id="leadList"></div>
+        <div id="leadEmpty" class="empty" style="display:none"><b>No leads yet</b>Add your first customer and start closing.</div>
+      </section>
+
+      <!-- ===== VIEW: LIBRARY ===== -->
+      <section class="view" id="view-library">
+        <h1>Model &amp; Price Library</h1>
+        <p class="sub">Seed and maintain the prices &amp; specs your consultants quote from. Saved on this device.</p>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <h3 style="margin:0">Lineup (2026)</h3>
+            <button class="btn sec sm" id="libReset">Reset to defaults</button>
+          </div>
+          <div id="libTable"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+  <div class="foot" style="padding:10px 18px;border-top:1px solid var(--line);background:rgba(250,250,252,.6)">
+    <b>Created &amp; Designed by Kevin Lim Fung Yen</b> — EV Supreme In-House Trainer ·
+    <span>BYD Sales Consultant Toolkit · Malaysia</span>
+    <span style="margin-left:auto" class="pill" id="saveState">Saved</span>
+  </div>
+</div>
+
+<div class="modal-bg" id="leadModal">
+  <div class="modal">
+    <button class="close" id="leadClose">×</button>
+    <h3 id="leadModalTitle">New lead</h3>
+    <p style="font-size:12.5px;color:var(--mut);margin-bottom:16px">Capture the customer and their offer.</p>
+    <div class="field"><label>Customer name</label><input type="text" id="lName" placeholder="e.g. Ahmad bin Ismail"></div>
+    <div class="field"><label>Phone (WhatsApp)</label><input type="tel" id="lPhone" placeholder="e.g. 60123456789"></div>
+    <div class="field"><label>Model</label><select id="lModel"></select></div>
+    <div class="field"><label>Offer summary (auto or manual)</label><textarea id="lSummary" rows="2" placeholder="e.g. ATTO 3 Premium — RM139,835 OTR, RM0 rebate, RM1,842/mo @7yr"></textarea></div>
+    <div class="row">
+      <div class="field"><label>Status</label><select id="lStatus">
+        <option value="new">New</option><option value="warm">Warm</option><option value="hot">Hot</option><option value="won">Won</option></select></div>
+      <div class="field"><label>Follow-up date</label><input type="date" id="lFollow"></div>
+    </div>
+    <div class="btn-row" style="justify-content:flex-end"><button class="btn ghost" id="leadCancel">Cancel</button><button class="btn" id="leadSave">Save lead</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ============ JS PLACEHOLDER ============ -->
+<script>
+/* =========================================================
+   BYD Sales Consultant Toolkit — Created & Designed by
+   Kevin Lim Fung Yen · EV Supreme In-House Trainer
+   ========================================================= */
+
+/* ---------- DATA (2026 Malaysia baseline; all editable) ---------- */
+const BASE = [
+  {id:'atto2',      brand:'BYD',   name:'ATTO 2',        variant:'', price:'', range:'',  battery:'', power:'', accel:'', charge:''},
+  {id:'atto3u',     brand:'BYD',   name:'ATTO 3',        variant:'Ultra', price:126660, range:'480 km', battery:'49.92 kWh', power:'150 kW / 310 Nm', accel:'7.3 s', charge:'11 / 80 kW'},
+  {id:'atto3p',     brand:'BYD',   name:'ATTO 3',        variant:'Premium', price:139835, range:'600 km', battery:'74.88 kWh', power:'230 kW / 380 Nm', accel:'5.5 s', charge:'11 / 220 kW'},
+  {id:'atto3perf',  brand:'BYD',   name:'ATTO 3',        variant:'Performance', price:'', range:'600 km', battery:'74.88 kWh', power:'230 kW / 380 Nm', accel:'5.5 s', charge:'11 / 220 kW'},
+  {id:'m6',         brand:'BYD',   name:'M6',            variant:'Extended', price:123800, range:'520 km', battery:'71.8 kWh', power:'150 kW / 310 Nm', accel:'7.4 s', charge:'11 / 88 kW'},
+  {id:'seal6',      brand:'BYD',   name:'SEAL 6',        variant:'Premium', price:'', range:'', battery:'', power:'', accel:'', charge:''},
+  {id:'sealp',      brand:'BYD',   name:'SEAL',          variant:'Premium', price:'', range:'570 km', battery:'82.5 kWh', power:'230 kW / 360 Nm', accel:'5.9 s', charge:'11 / 150 kW'},
+  {id:'sealperf',   brand:'BYD',   name:'SEAL',          variant:'Performance', price:'', range:'520 km', battery:'82.5 kWh', power:'390 kW / 670 Nm', accel:'3.8 s', charge:'11 / 150 kW'},
+  {id:'sl7dyn',     brand:'BYD',   name:'SEALION 7',     variant:'Dynamic', price:163800, range:'650 km', battery:'91.39 kWh', power:'390 kW / 690 Nm', accel:'4.5 s', charge:'11 / 230 kW'},
+  {id:'sl7prem',    brand:'BYD',   name:'SEALION 7',     variant:'Premium', price:188800, range:'650 km', battery:'91.39 kWh', power:'390 kW / 690 Nm', accel:'4.5 s', charge:'11 / 230 kW'},
+  {id:'sl7perf',    brand:'BYD',   name:'SEALION 7',     variant:'Performance', price:203800, range:'650 km', battery:'91.39 kWh', power:'390 kW / 690 Nm', accel:'4.5 s', charge:'11 / 230 kW'},
+  {id:'d9adv',      brand:'DENZA', name:'D9',            variant:'Advance', price:299000, range:'600 km', battery:'93 kWh', power:'275 kW / 470 Nm', accel:'6.9 s', charge:'11 / 166 kW'},
+  {id:'d9prem',     brand:'DENZA', name:'D9',            variant:'Premium', price:'', range:'600 km', battery:'93 kWh', power:'275 kW / 470 Nm', accel:'6.9 s', charge:'11 / 166 kW'},
+  {id:'b8',         brand:'DENZA', name:'B8',            variant:'', price:'', range:'', battery:'', power:'', accel:'', charge:''},
+  {id:'z9gt',       brand:'DENZA', name:'Z9 GT',         variant:'', price:'', range:'', battery:'', power:'', accel:'', charge:''}
+];
+
+const LS = { lib:'byd_toolkit_lib_v1', leads:'byd_toolkit_leads_v1', me:'byd_toolkit_me_v1', prefs:'byd_toolkit_prefs_v1' };
+const MYR = n => (n===''||n==null||isNaN(n)) ? '—' : 'RM ' + Math.round(n).toLocaleString('en-MY');
+
+let LIB = load(LS.lib, null) || deep(BASE);
+let LEADS = load(LS.leads, []);
+let ME = load(LS.me, {name:'Your Name', phone:'60123456789', showroom:'BYD Showroom'});
+let state = { studioModel:null, term:84, prefs:load(LS.prefs,{dp:10,rate:2.9,ins:0,insLoan:false}) };
+
+function load(k,d){ try{ const v=JSON.parse(localStorage.getItem(k)); return v===null||v===undefined?d:v; }catch(e){ return d; } }
+function save(k,v){ localStorage.setItem(k,JSON.stringify(v)); markSaved(); }
+function deep(o){ return JSON.parse(JSON.stringify(o)); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function num(v){ const n=parseFloat(v); return isNaN(n)?0:n; }
+function fmtRM(n){ return 'RM ' + Math.round(n).toLocaleString('en-MY'); }
+function markSaved(){ const el=document.getElementById('saveState'); if(el){ el.textContent='Saved'; el.style.opacity='.75'; setTimeout(()=>el.style.opacity='1',200);} }
+
+/* ---------- NAV ---------- */
+document.querySelectorAll('.nav-item').forEach(n=>{
+  n.addEventListener('click',()=>{
+    document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+    n.classList.add('active');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById('view-'+n.dataset.view).classList.add('active');
+  });
+});
+
+/* ---------- TOAST ---------- */
+let toastT;
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2600); }
+
+/* ---------- DATE / TODAY ---------- */
+(function(){
+  const d=new Date();
+  document.getElementById('todayLabel').textContent = d.toLocaleDateString('en-MY',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+})();
+function addDays(n){ const d=new Date(); d.setDate(d.getDate()+n); return d; }
+function iso(d){ return d.toISOString().slice(0,10); }
+function daysUntil(dateStr){ if(!dateStr) return null; const t=new Date(dateStr+'T23:59:59') - Date.now(); return Math.ceil(t/86400000); }
+
+/* ---------- LIBRARY ---------- */
+function getModel(id){ return LIB.find(m=>m.id===id) || null; }
+function label(m){ return m.name + (m.variant?' '+m.variant:''); }
+
+function renderStudioModels(){
+  const el=document.getElementById('studioModels');
+  el.innerHTML = LIB.map(m=>`
+    <div class="model-card ${state.studioModel===m.id?'sel':''}" data-id="${m.id}">
+      <span class="m-check">${state.studioModel===m.id?'✓':''}</span>
+      <div class="m-brand">${m.brand}</div>
+      <div class="m-name">${esc(m.name)}</div>
+      <div class="m-var">${esc(m.variant||'—')}</div>
+      <div class="m-price ${m.price===''?'blank':''}">${m.price===''?'set price':MYR(m.price)}</div>
+    </div>`).join('');
+  el.querySelectorAll('.model-card').forEach(c=>{
+    c.addEventListener('click',()=>{ state.studioModel=c.dataset.id; renderStudioModels(); renderOfferForm(); renderPoster(); });
+  });
+}
+
+function renderOfferForm(){
+  const wrap=document.getElementById('offerForm');
+  const m=getModel(state.studioModel);
+  if(!m){ wrap.innerHTML='<div class="empty">Select a model on the left to begin.</div>'; return; }
+  const p=state.prefs;
+  wrap.innerHTML = `
+    <div class="field"><label>OTR price without insurance (RM)</label>
+      <div class="unit"><input type="number" id="fPrice" value="${m.price===''?'':m.price}" min="0" step="100"><span>RM</span></div></div>
+    <div class="row">
+      <div class="field"><label>Cash rebate (RM)</label><div class="unit"><input type="number" id="fRebate" value="0" min="0" step="100"><span>RM</span></div></div>
+      <div class="field"><label>Additional rebate (words)</label><input type="text" id="fExtra" placeholder="e.g. Free wallbox / tint / loyalty"></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Down payment %</label><div class="unit"><input type="number" id="fDp" value="${p.dp}" min="0" max="100" step="1"><span>%</span></div></div>
+      <div class="field"><label>Bank rate / year (%)</label><div class="unit"><input type="number" id="fRate" value="${p.rate}" step="0.05"><span>%</span></div></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Insurance (RM)</label><div class="unit"><input type="number" id="fIns" value="${p.ins}" min="0" step="100"><span>RM</span></div></div>
+      <div class="field" style="display:flex;align-items:flex-end;padding-bottom:2px">
+        <label style="display:flex;align-items:center;gap:7px;font-weight:500;font-size:12.5px;color:var(--ink)">
+          <input type="checkbox" id="fInsLoan" ${p.insLoan?'checked':''} style="width:16px;height:16px"> Include insurance in loan</label>
+      </div>
+    </div>
+    <div class="field"><label>Poster validity (optional — leave blank for no expiry)</label>
+      <div class="row">
+        <div class="field"><input type="date" id="fValidFrom"></div>
+        <div class="field"><input type="date" id="fValidUntil"></div>
+      </div></div>
+    <div class="field"><label>Sales advisor shown on poster</label>
+      <div class="row">
+        <div class="field"><input type="text" id="fMeName" value="${esc(ME.name)}" placeholder="Your name"></div>
+        <div class="field"><input type="tel" id="fMePhone" value="${esc(ME.phone)}" placeholder="WhatsApp no."></div>
+      </div></div>
+  `;
+  ['fPrice','fRebate','fDp','fRate','fIns'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{ persistPrefs(); renderPoster(); }));
+  ['fExtra','fMeName','fMePhone'].forEach(id=>document.getElementById(id).addEventListener('input',()=>renderPoster()));
+  document.getElementById('fInsLoan').addEventListener('change',()=>{ persistPrefs(); renderPoster(); });
+  ['fValidFrom','fValidUntil'].forEach(id=>document.getElementById(id).addEventListener('change',()=>renderPoster()));
+}
+
+function persistPrefs(){
+  const g=id=>document.getElementById(id);
+  state.prefs = { dp:num(g('fDp').value)||0, rate:num(g('fRate').value)||0, ins:num(g('fIns').value)||0, insLoan:g('fInsLoan').checked };
+  save(LS.prefs, state.prefs);
+}
+
+function currentOffer(){
+  const m=getModel(state.studioModel);
+  if(!m) return null;
+  const price = num(document.getElementById('fPrice').value);
+  const rebate = num(document.getElementById('fRebate').value);
+  const dp = num(document.getElementById('fDp').value);
+  const rate = num(document.getElementById('fRate').value)/100;
+  const ins = num(document.getElementById('fIns').value);
+  const insLoan = document.getElementById('fInsLoan').checked;
+  const extra = document.getElementById('fExtra').value.trim();
+  const after = Math.max(0, price - rebate);
+  const deposit = after * dp/100;
+  const loanBase = insLoan ? after - deposit : after - deposit - ins;
+  const loan = Math.max(0, loanBase);
+  const terms = [60,84,108].map(mon=>{
+    const r=rate/12;
+    const monthly = r===0 ? loan/mon : loan*r/(1-Math.pow(1+r,-mon));
+    return {mon, monthly};
+  });
+  const upfront = insLoan ? deposit : deposit + ins;
+  return {m, price, rebate, extra, after, dp, rate, ins, insLoan, deposit, loan, upfront, terms,
+    validFrom:document.getElementById('fValidFrom').value, validUntil:document.getElementById('fValidUntil').value,
+    meName:document.getElementById('fMeName').value.trim()||ME.name, mePhone:document.getElementById('fMePhone').value.trim()||ME.phone};
+}
+
+/* =========================================================
+   POSTER — canvas rendered 1080×1920 (9:16)
+   ========================================================= */
+const PW=1080, PH=1920;
+function hex2rgba(hex,a){ const h=hex.replace('#',''); const n=parseInt(h,16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`; }
+
+function drawRoundedRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+}
+
+function drawCarSilhouette(ctx,x,y,s,color){
+  // abstract electric SUV side silhouette
+  ctx.save(); ctx.translate(x,y); ctx.scale(s,s); ctx.fillStyle=color;
+  ctx.beginPath();
+  ctx.moveTo(18,42); ctx.bezierCurveTo(6,42,2,34,3,27); ctx.lineTo(8,22);
+  ctx.lineTo(22,10); ctx.bezierCurveTo(30,6,44,5,50,10); ctx.lineTo(62,15);
+  ctx.lineTo(78,16); ctx.bezierCurveTo(86,17,92,21,93,27); ctx.lineTo(95,34);
+  ctx.lineTo(96,38); ctx.bezierCurveTo(97,42,93,44,90,44);
+  ctx.lineTo(86,44); ctx.bezierCurveTo(82,38,72,38,68,44); ctx.lineTo(46,44);
+  ctx.bezierCurveTo(42,38,32,38,28,44); ctx.lineTo(20,44); ctx.closePath(); ctx.fill();
+  // wheels
+  ctx.fillStyle='#0b1420';
+  [[27,44],[73,44]].forEach(w=>{ ctx.beginPath(); ctx.arc(w,44,5.4,0,7); ctx.fill(); });
+  ctx.fillStyle=color;
+  [[27,44],[73,44]].forEach(w=>{ ctx.beginPath(); ctx.arc(w,44,2.4,0,7); ctx.fill(); });
+  ctx.restore();
+}
+
+function drawPoster(o){
+  const cv=document.createElement('canvas'); cv.width=PW; cv.height=PH;
+  const ctx=cv.getContext('2d');
+  const m=o.m;
+  // background
+  const bg=ctx.createLinearGradient(0,0,0,PH);
+  bg.addColorStop(0,'#0a1420'); bg.addColorStop(.5,'#0d1b2e'); bg.addColorStop(1,'#0a1420');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,PW,PH);
+  // subtle grid lines
+  ctx.strokeStyle='rgba(255,255,255,.03)'; ctx.lineWidth=1;
+  for(let i=0;i<PH;i+=48){ ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(PW,i); ctx.stroke(); }
+  for(let i=0;i<PW;i+=48){ ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,PH); ctx.stroke(); }
+  // glow
+  const glow=ctx.createRadialGradient(PW/2,780,40,PW/2,780,620);
+  glow.addColorStop(0,'rgba(0,122,255,.30)'); glow.addColorStop(1,'rgba(0,122,255,0)');
+  ctx.fillStyle=glow; ctx.fillRect(0,300,PW,900);
+
+  // top bar
+  ctx.fillStyle='rgba(255,255,255,.06)'; ctx.fillRect(0,0,PW,150);
+  ctx.fillStyle='#ffffff'; ctx.font='700 34px "SF Pro Display",-apple-system,Segoe UI,Arial'; ctx.textAlign='left';
+  ctx.fillText('BUILD YOUR DREAMS',70,70);
+  ctx.font='600 22px -apple-system,Segoe UI,Arial'; ctx.fillStyle='rgba(255,255,255,.6)';
+  ctx.fillText(m.brand==='DENZA'?'DENZA · MALAYSIA':'BYD · MALAYSIA',70,112);
+  ctx.fillStyle='#007AFF'; const rr=170; ctx.beginPath(); ctx.arc(PW-90,75,34,0,7); ctx.fill();
+  ctx.fillStyle='#fff'; ctx.font='700 30px -apple-system,Arial'; ctx.textAlign='center'; ctx.fillText('B',PW-90,88);
+
+  // headline
+  ctx.textAlign='left'; ctx.fillStyle='#ffffff';
+  ctx.font='800 96px "SF Pro Display",-apple-system,Segoe UI,Arial';
+  ctx.fillText(m.name,70,330);
+  if(m.variant){ ctx.font='600 44px -apple-system,Segoe UI,Arial'; ctx.fillStyle='rgba(255,255,255,.72)'; ctx.fillText(m.variant,72,392); }
+  // accent line
+  ctx.fillStyle='#007AFF'; ctx.fillRect(72,426,120,10);
+
+  // car illustration
+  drawCarSilhouette(ctx,250,540,7.6,'#1e3a5f');
+  // price chip
+  const chip=ctx.createLinearGradient(PW-500,0,PW,0); chip.addColorStop(0,'#007AFF'); chip.addColorStop(1,'#0A84FF');
+  ctx.fillStyle=chip; drawRoundedRect(ctx,72,690,PW-144,170,22); ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.7)'; ctx.font='600 24px -apple-system,Segoe UI,Arial';
+  ctx.fillText('HARGA SELEPAS REBAT',104,750);
+  ctx.fillStyle='#fff'; ctx.font='800 66px "SF Pro Display",-apple-system,Segoe UI,Arial';
+  ctx.fillText(o.after?MYR(o.after):MYR(o.price),104,830);
+
+  // specs
+  ctx.textAlign='left';
+  const specs=[['Range',o.m.range||'—'],['Battery',o.m.battery||'—'],['Power / torque',o.m.power||'—'],['0–100 km/h',o.m.accel||'—'],['Charging AC/DC',o.m.charge||'—']];
+  ctx.font='600 20px -apple-system,Segoe UI,Arial'; ctx.fillStyle='rgba(255,255,255,.55)';
+  ctx.fillText('SPESIFIKASI',72,960);
+  let y=1005;
+  specs.forEach(([k,v])=>{
+    ctx.fillStyle='rgba(255,255,255,.5)'; ctx.font='500 25px -apple-system,Segoe UI,Arial'; ctx.textAlign='left';
+    ctx.fillText(k,72,y);
+    ctx.fillStyle='#fff'; ctx.font='700 28px -apple-system,Segoe UI,Arial'; ctx.textAlign='right';
+    ctx.fillText(String(v),PW-72,y);
+    ctx.fillStyle='rgba(255,255,255,.08)'; ctx.fillRect(72,y+22,PW-144,2);
+    y+=62;
+  });
+  ctx.fillStyle='rgba(255,255,255,.35)'; ctx.font='500 18px -apple-system,Segoe UI,Arial'; ctx.textAlign='left';
+  ctx.fillText('Gambar ilustrasi · Varian mungkin berbeza',72,y+8);
+
+  // financing block
+  const fy=1330;
+  ctx.fillStyle='rgba(255,255,255,.06)'; drawRoundedRect(ctx,72,fy,PW-144,330,24); ctx.fill();
+  ctx.fillStyle='#fff'; ctx.font='800 26px -apple-system,Segoe UI,Arial'; ctx.fillText('PEMBIAYAAN ANGARAN',100,fy+56);
+  const rows=[['Harga OTR tanpa insurans',MYR(o.price)],['Deposit ('+o.dp+'%)',MYR(o.deposit)],
+    ['Insurans · '+(o.insLoan?'pinjaman':'bayar tunai'),MYR(o.ins)],['Jumlah pinjaman',MYR(o.loan)],['Bayaran awal',MYR(o.upfront)]];
+  let ry=fy+92;
+  rows.forEach(([k,v])=>{
+    ctx.fillStyle='rgba(255,255,255,.55)'; ctx.font='500 24px -apple-system,Segoe UI,Arial'; ctx.textAlign='left';
+    ctx.fillText(k,100,ry);
+    ctx.fillStyle='#fff'; ctx.font='700 26px -apple-system,Segoe UI,Arial'; ctx.textAlign='right';
+    ctx.fillText(v,PW-100,ry);
+    ctx.fillStyle='rgba(255,255,255,.07)'; ctx.fillRect(100,ry+22,PW-200,2);
+    ry+=52;
+  });
+
+  // selected term monthly
+  const t=o.terms.find(x=>x.mon===state.term)||o.terms[1];
+  const ty=1740;
+  ctx.fillStyle='#007AFF'; drawRoundedRect(ctx,72,ty,PW-144,108,20); ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.75)'; ctx.font='600 24px -apple-system,Segoe UI,Arial'; ctx.textAlign='left';
+  ctx.fillText('ANSURAN '+t.mon/12+' TAHUN',100,ty+44);
+  ctx.fillStyle='#fff'; ctx.font='800 52px "SF Pro Display",-apple-system,Segoe UI,Arial'; ctx.textAlign='right';
+  ctx.fillText(MYR(t.monthly),PW-100,ty+72);
+
+  // footer / consultant
+  ctx.fillStyle='rgba(255,255,255,.5)'; ctx.font='600 24px -apple-system,Segoe UI,Arial'; ctx.textAlign='left';
+  ctx.fillText('PENASIHAT JUALAN ANDA',72,1880);
+  ctx.fillStyle='#fff'; ctx.font='700 30px -apple-system,Segoe UI,Arial';
+  ctx.fillText(o.meName,72,1922);
+  ctx.fillStyle='rgba(255,255,255,.6)'; ctx.font='500 24px -apple-system,Segoe UI,Arial';
+  ctx.fillText(o.mePhone,480,1922);
+  ctx.fillStyle='#007AFF'; ctx.font='700 22px -apple-system,Segoe UI,Arial'; ctx.textAlign='right';
+  ctx.fillText('Jom kenali BYD →',PW-72,1922);
+
+  if(o.validUntil){ const d=daysUntil(o.validUntil); if(d!==null && d>=0){
+    ctx.fillStyle='#ff9f0a'; ctx.font='700 24px -apple-system,Segoe UI,Arial'; ctx.textAlign='left';
+    ctx.fillText('Tawaran sah sehingga '+o.validUntil + (d===0?' (hari ini)':'') ,72,1340);
+  }}
+  return cv;
+}
+
+function renderPoster(){
+  const area=document.getElementById('posterArea');
+  const o=currentOffer();
+  if(!o){ area.innerHTML=''; return; }
+  const cv=drawPoster(o);
+  const sel=o.terms.find(x=>x.mon===state.term)||o.terms[1];
+  area.innerHTML=`
+    <div class="card"><h3>3 · Preview &amp; share</h3>
+      <div class="poster-wrap">
+        <div class="poster-stage"><div class="poster-preview" id="pp"></div></div>
+        <div class="poster-side">
+          <div class="stat"><span class="k">Price after rebate</span><span class="v big" id="psAfter">${MYR(o.after)}</span></div>
+          <div class="stat"><span class="k">Deposit (${o.dp}%)</span><span class="v">${MYR(o.deposit)}</span></div>
+          <div class="stat"><span class="k">Insurance</span><span class="v">${MYR(o.ins)}</span></div>
+          <div class="stat"><span class="k">Loan amount</span><span class="v">${MYR(o.loan)}</span></div>
+          <div class="stat"><span class="k">Upfront</span><span class="v">${MYR(o.upfront)}</span></div>
+          <div class="term-tabs">${o.terms.map(t=>`<div class="t ${t.mon===state.term?'on':''}" data-m="${t.mon}">${t.mon/12}yr<br>${MYR(t.monthly)}</div>`).join('')}</div>
+          ${o.extra?`<div class="stat"><span class="k">Additional</span><span class="v">${esc(o.extra)}</span></div>`:''}
+          ${o.validUntil?`<div class="stat"><span class="k">Offer valid</span><span class="v">${esc(o.validUntil)}${daysUntil(o.validUntil)===0?' · today':''}</span></div>`:''}
+          <div class="btn-row">
+            <button class="btn" id="dlPoster">Download PNG</button>
+            <button class="btn green" id="waPoster">WhatsApp offer</button>
+            <button class="btn ghost" id="saveAsLead">Save as lead</button>
+          </div>
+          <p style="font-size:11px;color:var(--mut);margin-top:10px">Estimate only · subject to bank approval · monthly is rounded. Prices &amp; specs editable in Model Library.</p>
+        </div>
+      </div></div>`;
+  document.getElementById('pp').appendChild(cv);
+  area.querySelectorAll('.term-tabs .t').forEach(t=>t.addEventListener('click',()=>{ state.term=num(t.dataset.m); renderPoster(); }));
+  document.getElementById('dlPoster').addEventListener('click',()=>{ const a=document.createElement('a'); a.download=label(o.m)+' offer.png'; a.href=o._dl||cv.toDataURL('image/png'); a.click(); toast('Poster downloaded'); });
+  document.getElementById('waPoster').addEventListener('click',()=>shareWhatsApp(o));
+  document.getElementById('saveAsLead').addEventListener('click',()=>openLeadModal(o));
+}
+
+function waMsg(o, meName){
+  const t=o.terms.find(x=>x.mon===state.term)||o.terms[1];
+  return encodeURIComponent(
+`Hi! 👋\n\n*${label(o.m)}* — penawaran khas untuk anda:\n\nHarga OTR: ${MYR(o.price)}\nHarga selepas rebat: ${MYR(o.after)}\nAnsuran: ${MYR(t.monthly)}/bulan (${t.mon/12} tahun)\nDeposit: ${MYR(o.deposit)} (${o.dp}%)\n${o.extra?'Bonus: '+o.extra+'\n':''}${o.validUntil?'Tawaran sah sehingga '+o.validUntil+'\n':''}\n\nJom kami bantu anda tukar kepada EV hari ini. Hubungi saya bila-bila masa!\n\n— ${o.meName}`);
+}
+function waPhone(p){ let s=String(p||'').replace(/[^0-9]/g,''); if(s.startsWith('0')) s='6'+s; return s; }
+function shareWhatsApp(o){
+  const num=waPhone(o.mePhone||ME.phone);
+  const msg=waMsg(o);
+  const url='https://wa.me/'+num+'?text='+msg;
+  window.open(url,'_blank');
+  toast('Opening WhatsApp…');
+}
+function copyText(t){ if(navigator.clipboard) navigator.clipboard.writeText(t).then(()=>toast('Copied to clipboard')).catch(()=>toast('Copy failed')); else toast('Copy not supported'); }
+
+/* =========================================================
+   COMPARE
+   ========================================================= */
+let cmpSel=[];
+function renderCmpModels(){
+  const el=document.getElementById('cmpModels');
+  el.innerHTML=LIB.map(m=>`
+    <div class="model-card ${cmpSel.includes(m.id)?'sel':''}" data-id="${m.id}">
+      <span class="m-check">${cmpSel.includes(m.id)?'✓':''}</span>
+      <div class="m-brand">${m.brand}</div><div class="m-name">${esc(m.name)}</div>
+      <div class="m-var">${esc(m.variant||'—')}</div>
+      <div class="m-price ${m.price===''?'blank':''}">${m.price===''?'set price':MYR(m.price)}</div>
+    </div>`).join('');
+  el.querySelectorAll('.model-card').forEach(c=>c.addEventListener('click',()=>{
+    const id=c.dataset.id;
+    cmpSel=cmpSel.includes(id)?cmpSel.filter(x=>x!==id):[...cmpSel,id];
+    if(cmpSel.length>3) cmpSel=cmpSel.slice(-3);
+    renderCmpModels(); renderCompare();
+  }));
+}
+function cmpMonthly(price,rebate,dp,rate,mon){
+  const after=Math.max(0,price-rebate); const deposit=after*dp/100; const loan=after-deposit;
+  const r=rate/100/12; return r===0?loan/mon:loan*r/(1-Math.pow(1+r,-mon));
+}
+function renderCompare(){
+  const el=document.getElementById('cmpResult');
+  if(cmpSel.length===0){ el.innerHTML=''; return; }
+  const dp=state.prefs.dp, rate=state.prefs.rate;
+  const models=cmpSel.map(id=>getModel(id)).filter(Boolean);
+  const rows=[
+    ['Price (OTR)', m=>MYR(m.price), true],
+    ['Range', m=>m.range||'—', false],
+    ['Battery', m=>m.battery||'—', false],
+    ['Power / torque', m=>m.power||'—', false],
+    ['0–100 km/h', m=>m.accel||'—', false],
+    ['Deposit '+dp+'%', m=>m.price===''?'—':MYR(num(m.price)*dp/100), false],
+    ['Est. monthly (7yr)', m=>m.price===''?'—':MYR(cmpMonthly(num(m.price),0,dp,rate,84)), true]
+  ];
+  el.innerHTML=`<div class="card">
+    <h3>Side-by-side</h3>
+    <div style="overflow-x:auto"><table class="cmp-table"><colgroup>
+      <col style="width:24%">${models.map(()=>'<col style="width:'+Math.floor(76/models.length)+'%">').join('')}
+      </colgroup><thead><tr><th>Spec</th>${models.map(m=>`<th>${esc(m.name)} ${esc(m.variant||'')}</th>`).join('')}</tr></thead>
+      <tbody>${rows.map(([k,fn,hi])=>`<tr><td>${k}</td>${models.map(m=>`<td class="${hi?'hi':''}">${fn(m)}</td>`).join('')}</tr>`).join('')}
+      </tbody></table></div>
+    <div class="btn-row" style="margin-top:14px"><button class="btn green" id="cmpWa">Share comparison</button></div>
+  </div>`;
+  document.getElementById('cmpWa').addEventListener('click',()=>{
+    const lines=models.map(m=>`• ${label(m)} — ${m.price===''?'price TBA':MYR(m.price)}${m.range?' · '+m.range:''}`);
+    const msg=encodeURIComponent('Perbandingan pilihan EV BYD untuk anda:\n\n'+lines.join('\n')+'\n\nHubungi kami untuk sebut harga & ujian pandu!');
+    window.open('https://wa.me/'+waPhone(ME.phone)+'?text='+msg,'_blank'); toast('Opening WhatsApp…');
+  });
+}
+
+/* =========================================================
+   TRADE-IN
+   ========================================================= */
+function renderTiModel(){
+  const sel=document.getElementById('tiModel');
+  sel.innerHTML=LIB.map(m=>`<option value="${m.id}">${label(m)} — ${m.price===''?'price TBA':MYR(m.price)}</option>`).join('');
+}
+function calcTradeIn(){
+  const m=getModel(document.getElementById('tiModel').value);
+  const price=num(m.price), value=num(document.getElementById('tiValue').value),
+        dp=num(document.getElementById('tiDp').value), rate=num(document.getElementById('tiRate').value)/100,
+        rebate=num(document.getElementById('tiRebate').value), mon=num(document.getElementById('tiTerm').value);
+  const el=document.getElementById('tiResult');
+  if(!m||m.price===''){ el.innerHTML='<div class="empty">This model has no price set. Set it in the Model Library first.</div>'; return; }
+  const after=Math.max(0,price-rebate);
+  const loanNo=after-(after*dp/100);
+  const loanTi=Math.max(0,after-(after*dp/100)-value);
+  const monthly=(loan,r)=>r===0?loan/mon:loan*(r/12)/(1-Math.pow(1+r/12,-mon));
+  const r=rate;
+  const mNo=monthly(loanNo,r), mTi=monthly(loanTi,r);
+  const save=mNo-mTi;
+  const el2=el;
+  el2.innerHTML=`<h3>Impact of trade-in</h3>
+    <div class="stat"><span class="k">Model</span><span class="v">${label(m)}</span></div>
+    <div class="stat"><span class="k">OTR price</span><span class="v">${MYR(price)}</span></div>
+    <div class="stat"><span class="k">Cash rebate</span><span class="v">${MYR(rebate)}</span></div>
+    <div class="stat"><span class="k">Trade-in value</span><span class="v">${MYR(value)}</span></div>
+    <div class="stat"><span class="k">Deposit (${dp}%)</span><span class="v">${MYR(after*dp/100)}</span></div>
+    <div class="stat" style="border-top:2px solid var(--line);margin-top:6px;padding-top:12px">
+      <span class="k">Without trade-in / month</span><span class="v">${MYR(mNo)}</span></div>
+    <div class="stat"><span class="k">With trade-in / month</span><span class="v blue">${MYR(mTi)}</span></div>
+    <div class="stat"><span class="k">You save / month</span><span class="v big" style="color:var(--green)">${MYR(save)}</span></div>
+    <p style="font-size:11.5px;color:var(--mut);margin-top:10px">${mon/12}-year term at ${(rate*100).toFixed(2)}% p.a. Estimate only, subject to bank approval.</p>
+    <div class="btn-row"><button class="btn green" id="tiWa">Send this to customer</button></div>`;
+  document.getElementById('tiWa').addEventListener('click',()=>{
+    const msg=encodeURIComponent(`Perbandingan ansuran untuk ${label(m)}:\n\nTanpa trade-in: ${MYR(mNo)}/bulan\nDengan trade-in (${MYR(value)}): ${MYR(mTi)}/bulan\nJimat ${MYR(save)}/bulan!\n\nJom kami bantu uruskan trade-in anda.`);
+    window.open('https://wa.me/'+waPhone(ME.phone)+'?text='+msg,'_blank'); toast('Opening WhatsApp…');
+  });
+}
+
+/* =========================================================
+   LEADS
+   ========================================================= */
+let leadEditId=null;
+function renderLeads(){
+  const list=document.getElementById('leadList');
+  const q=(document.getElementById('leadSearch').value||'').toLowerCase();
+  const filtered=LEADS.filter(l=>(l.name||'').toLowerCase().includes(q)||(l.model||'').toLowerCase().includes(q)||(l.phone||'').toLowerCase().includes(q));
+  document.getElementById('leadCount').textContent=LEADS.length;
+  document.getElementById('leadEmpty').style.display=LEADS.length?'none':'block';
+  if(!filtered.length){ list.innerHTML=LEADS.length?'<div class="empty"><b>No matches</b>Try a different search.</div>':''; return; }
+  const statusMap={new:['New','st-new'],warm:['Warm','st-warm'],hot:['Hot','st-hot'],won:['Won','st-won']};
+  list.innerHTML=filtered.map(l=>{
+    const [sTxt,sCls]=statusMap[l.status]||statusMap.new;
+    const due=daysUntil(l.follow);
+    const dueCls=(due!==null&&due<=1&&l.status!=='won')?' st-due':'';
+    return `<div class="lead-card">
+      <div class="lead-ava">${esc((l.name||'?').trim().charAt(0).toUpperCase()||'?')}</div>
+      <div class="lead-body">
+        <div class="lead-name">${esc(l.name)}</div>
+        <div class="lead-meta">${esc(l.model||'—')} · ${esc(l.phone||'—')}${l.follow?' · follow-up '+esc(l.follow)+(due!==null&&due>=0?' ('+due+'d)':''):''}</div>
+        ${l.summary?`<div class="lead-meta">${esc(l.summary)}</div>`:''}
+      </div>
+      <span class="lead-status ${sCls}${dueCls}">${sTxt}</span>
+      <div class="lead-actions">
+        ${l.phone?`<button class="iconbtn" data-act="wa" data-id="${l.id}" title="WhatsApp"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2zm5.4 14.1c-.2.6-1.2 1.1-1.7 1.2-.5 0-1 .2-3.3-.7-2.8-1.1-4.6-3.9-4.7-4.1-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.4l.9 2.1c.1.2.1.4 0 .5l-.4.6-.4.5c-.1.2-.3.3-.1.6.2.3.8 1.4 1.8 2.2 1.2 1 2.2 1.4 2.5 1.5.3.1.5.1.6-.1l.8-.9c.2-.3.4-.2.6-.1l2 .9c.3.1.4.2.5.4 0 .1 0 .6-.2 1.1z"/></svg></button>`:''}
+        <button class="iconbtn" data-act="edit" data-id="${l.id}" title="Edit"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
+        <button class="iconbtn danger" data-act="del" data-id="${l.id}" title="Delete"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
+      </div></div>`;
+  }).join('');
+  list.querySelectorAll('.iconbtn').forEach(b=>b.addEventListener('click',()=>{
+    const id=b.dataset.id, act=b.dataset.act;
+    if(act==='wa'){ const l=LEADS.find(x=>x.id===id); if(l&&l.phone) window.open('https://wa.me/'+waPhone(l.phone)+'?text='+encodeURIComponent('Hi '+l.name+', teringat tawaran '+l.model+' anda — ada sebarang soalan?'),'_blank'); }
+    else if(act==='edit') openLeadModal(null,id);
+    else if(act==='del'){ if(confirm('Delete this lead?')){ LEADS=LEADS.filter(x=>x.id!==id); save(LS.leads,LEADS); renderLeads(); toast('Lead deleted'); } }
+  }));
+}
+document.getElementById('leadSearch').addEventListener('input',renderLeads);
+
+function openLeadModal(o,id){
+  leadEditId=id||null;
+  const modal=document.getElementById('leadModal');
+  document.getElementById('leadModalTitle').textContent=id?'Edit lead':'New lead';
+  const l=id?LEADS.find(x=>x.id===id):null;
+  document.getElementById('lName').value=l?l.name:'';
+  document.getElementById('lPhone').value=l?l.phone:'';
+  document.getElementById('lModel').value=(o?o.m.id:(l?l.modelId:''));
+  const s=document.getElementById('lSummary');
+  if(o){ const t=o.terms.find(x=>x.mon===state.term)||o.terms[1]; s.value=`${label(o.m)} — ${MYR(o.after)} OTR, ${MYR(t.monthly)}/mo @${t.mon/12}yr`; }
+  else if(l){ s.value=l.summary||''; }
+  document.getElementById('lStatus').value=l?l.status:'new';
+  document.getElementById('lFollow').value=l?l.follow:(iso(addDays(3)));
+  renderLeadModelOptions();
+  modal.classList.add('show');
+}
+function renderLeadModelOptions(){
+  const sel=document.getElementById('lModel'); if(!sel) return;
+  sel.innerHTML=LIB.map(m=>`<option value="${m.id}">${label(m)}</option>`).join('');
+  return '';
+}
+document.getElementById('addLeadBtn').addEventListener('click',()=>openLeadModal(null,null));
+document.getElementById('leadClose').addEventListener('click',closeLead);
+document.getElementById('leadCancel').addEventListener('click',closeLead);
+function closeLead(){ document.getElementById('leadModal').classList.remove('show'); }
+document.getElementById('leadSave').addEventListener('click',()=>{
+  const name=document.getElementById('lName').value.trim();
+  if(!name){ toast('Please enter a name'); return; }
+  const data={ id:leadEditId||Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+    name, phone:document.getElementById('lPhone').value.trim(),
+    modelId:document.getElementById('lModel').value,
+    model:label(getModel(document.getElementById('lModel').value)||{}),
+    summary:document.getElementById('lSummary').value.trim(),
+    status:document.getElementById('lStatus').value,
+    follow:document.getElementById('lFollow').value,
+    created:Date.now() };
+  if(leadEditId){ const i=LEADS.findIndex(x=>x.id===leadEditId); if(i>=0){ const old=LEADS[i]; LEADS[i]={...old,...data,id:old.id}; } }
+  else LEADS.push(data);
+  save(LS.leads,LEADS); renderLeads(); closeLead(); toast('Lead saved');
+});
+
+/* =========================================================
+   LIBRARY — editable prices & specs
+   ========================================================= */
+function renderLibTable(){
+  const el=document.getElementById('libTable');
+  const cols=[['name','Model'],['brand','Brand'],['variant','Variant'],['price','OTR (RM)'],['range','Range'],['battery','Battery'],['power','Power / torque'],['accel','0–100'],['charge','AC/DC']];
+  el.innerHTML=`
+    <div style="overflow-x:auto"><table class="cmp-table"><colgroup>
+      <col style="width:16%"><col style="width:10%"><col style="width:12%"><col style="width:12%">
+      <col style="width:10%"><col style="width:11%"><col style="width:14%"><col style="width:8%"><col style="width:10%">
+    </colgroup><thead><tr>${cols.map(c=>`<th>${c[1]}</th>`).join('')}</tr></thead>
+    <tbody>${LIB.map(m=>`
+      <tr>
+        <td class="model-col">${esc(m.name)}</td>
+        <td>${m.brand}</td>
+        <td><input type="text" data-f="variant" data-id="${m.id}" value="${esc(m.variant)}" style="width:100%;padding:5px 8px;border:1px solid var(--line2);border-radius:6px;font-size:12.5px"></td>
+        <td><input type="number" data-f="price" data-id="${m.id}" value="${m.price===''?'':m.price}" style="width:100%;padding:5px 8px;border:1px solid var(--line2);border-radius:6px;font-size:12.5px"></td>
+        <td><input type="text" data-f="range" data-id="${m.id}" value="${esc(m.range)}" style="width:100%;padding:5px 8px;border:1px solid var(--line2);border-radius:6px;font-size:12.5px"></td>
+        <td><input type="text" data-f="battery" data-id="${m.id}" value="${esc(m.battery)}" style="width:100%;padding:5px 8px;border:1px solid var(--line2);border-radius:6px;font-size:12.5px"></td>
+        <td><input type="text" data-f="power" data-id="${m.id}" value="${esc(m.power)}" style="width:100%;padding:5px 8px;border:1px solid var(--line2);border-radius:6px;font-size:12.5px"></td>
+        <td><input type="text" data-f="accel" data-id="${m.id}" value="${esc(m.accel)}" style="width:100%;padding:5px 8px;border:1px solid var(--line2);border-radius:6px;font-size:12.5px"></td>
+        <td><input type="text" data-f="charge" data-id="${m.id}" value="${esc(m.charge)}" style="width:100%;padding:5px 8px;border:1px solid var(--line2);border-radius:6px;font-size:12.5px"></td>
+      </tr>`).join('')}
+    </tbody></table></div>
+    <div class="btn-row" style="margin-top:14px"><button class="btn" id="libSave">Save library</button>
+    <span style="font-size:12px;color:var(--mut);align-self:center">Prices &amp; specs are stored locally and feed the Offer Studio, Compare &amp; Trade-in tools.</span></div>`;
+  document.getElementById('libSave').addEventListener('click',()=>{
+    const inputs=el.querySelectorAll('input[data-f]');
+    inputs.forEach(i=>{ const m=getModel(i.dataset.id); if(!m) return; const f=i.dataset.f;
+      let v=i.value.trim(); if(f==='price') v=(v===''?'':num(v)); m[f]=v; });
+    save(LS.lib,LIB); renderLibTable(); renderStudioModels(); renderCmpModels(); renderTiModel(); if(state.studioModel) renderOfferForm();
+    toast('Library saved — all tools updated');
+  });
+}
+document.getElementById('libReset').addEventListener('click',()=>{
+  if(!confirm('Reset all prices & specs to the 2026 defaults? This discards your edits.')) return;
+  LIB=deep(BASE); localStorage.removeItem(LS.lib); renderLibTable(); renderStudioModels(); renderCmpModels(); renderTiModel();
+  if(state.studioModel){ renderOfferForm(); }
+  save(LS.lib,LIB); toast('Library reset to defaults');
+});
+
+/* =========================================================
+   INIT
+   ========================================================= */
+renderStudioModels(); renderCmpModels(); renderTiModel(); renderLeads(); renderLibTable();
+// prefill today's date into validity fields once form builds
+</script>
+</body>
+</html>
