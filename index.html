@@ -593,25 +593,36 @@ function renderPoster(){
           ${o.extra?`<div class="stat"><span class="k">Additional</span><span class="v">${esc(o.extra)}</span></div>`:''}
           ${o.validUntil?`<div class="stat"><span class="k">Offer valid</span><span class="v">${esc(o.validUntil)}${daysUntil(o.validUntil)===0?' · today':''}</span></div>`:''}
           <div class="btn-row">
-            <button class="btn" id="dlPoster">Download PNG</button>
-            <button class="btn green" id="waPoster">WhatsApp offer</button>
+            <button class="btn" id="dlPoster">Save image</button>
+            <button class="btn green" id="waPoster">Send poster on WhatsApp</button>
             <button class="btn ghost" id="saveAsLead">Save as lead</button>
           </div>
-          <p style="font-size:11px;color:var(--mut);margin-top:10px">Estimate only · subject to bank approval · monthly is rounded. Prices &amp; specs editable in Model Library.</p>
+          <p style="font-size:11px;color:var(--mut);margin-top:10px">On your phone, tap <b>Save image</b> → choose <b>Save to Photos</b>, or <b>Send poster on WhatsApp</b> to attach the actual offer image. Estimate only · subject to bank approval.</p>
         </div>
       </div></div>`;
   document.getElementById('pp').appendChild(cv);
   area.querySelectorAll('.term-tabs .t').forEach(t=>t.addEventListener('click',()=>{ state.term=num(t.dataset.m); renderPoster(); }));
-  document.getElementById('dlPoster').addEventListener('click',()=>{ const a=document.createElement('a'); a.download=label(o.m)+' offer.png'; a.href=o._dl||cv.toDataURL('image/png'); a.click(); toast('Poster downloaded'); });
-  document.getElementById('waPoster').addEventListener('click',()=>shareWhatsApp(o));
+  // Build the poster as a real PNG File for phone native share / save
+  const pngFile=()=>new Promise(res=>{ cv.toBlob(b=>{ res(new File([b], (label(o.m)+' offer.png').replace(/[^a-z0-9]+/gi,'-').toLowerCase(), {type:'image/png'})); },'image/png'); });
+  const shareFiles=(f,text)=>navigator.canShare && navigator.canShare({files:[f]});
+  document.getElementById('dlPoster').addEventListener('click',async ()=>{
+    const f=await pngFile();
+    if(shareFiles(f)){ try{ await navigator.share({files:[f], title:label(o.m)+' offer'}); toast('Choose Save to Photos/Files'); }catch(e){ if(e.name!=='AbortError') toast('Could not open share'); } }
+    else{ const a=document.createElement('a'); a.download=label(o.m)+' offer.png'; a.href=cv.toDataURL('image/png'); a.click(); toast('Poster downloaded'); }
+  });
+  document.getElementById('waPoster').addEventListener('click',async ()=>{
+    const f=await pngFile();
+    if(shareFiles(f)){ try{ await navigator.share({files:[f], text:waText(o)}); toast('Choose WhatsApp to attach the poster'); }catch(e){ /* cancelled */ } }
+    else shareWhatsApp(o);
+  });
   document.getElementById('saveAsLead').addEventListener('click',()=>openLeadModal(o));
 }
 
-function waMsg(o, meName){
+function waText(o){
   const t=o.terms.find(x=>x.mon===state.term)||o.terms[1];
-  return encodeURIComponent(
-`Hi! 👋\n\n*${label(o.m)}* — penawaran khas untuk anda:\n\nHarga OTR: ${MYR(o.price)}\nHarga selepas rebat: ${MYR(o.after)}\nAnsuran: ${MYR(t.monthly)}/bulan (${t.mon/12} tahun)\nDeposit: ${MYR(o.deposit)} (${o.dp}%)\n${o.extra?'Bonus: '+o.extra+'\n':''}${o.validUntil?'Tawaran sah sehingga '+o.validUntil+'\n':''}\n\nJom kami bantu anda tukar kepada EV hari ini. Hubungi saya bila-bila masa!\n\n— ${o.meName}`);
+  return `Hi! 👋\n\n*${label(o.m)}* — penawaran khas untuk anda:\n\nHarga OTR: ${MYR(o.price)}\nHarga selepas rebat: ${MYR(o.after)}\nAnsuran: ${MYR(t.monthly)}/bulan (${t.mon/12} tahun)\nDeposit: ${MYR(o.deposit)} (${o.dp}%)\n${o.extra?'Bonus: '+o.extra+'\n':''}${o.validUntil?'Tawaran sah sehingga '+o.validUntil+'\n':''}\n\nJom kami bantu anda tukar kepada EV hari ini. Hubungi saya bila-bila masa!\n\n— ${o.meName}`;
 }
+function waMsg(o){ return encodeURIComponent(waText(o)); }
 function waPhone(p){ let s=String(p||'').replace(/[^0-9]/g,''); if(s.startsWith('0')) s='6'+s; return s; }
 function shareWhatsApp(o){
   const num=waPhone(o.mePhone||ME.phone);
