@@ -897,17 +897,30 @@ function drawComparePoster(models){
     ctx.fillText(m.name, x, imgY+imgH+52);
     if(m.variant){ ctx.font='600 21px -apple-system,Arial'; ctx.fillStyle='rgba(255,255,255,.6)'; ctx.fillText(m.variant, x, imgY+imgH+84); }
     // price
-    ctx.fillStyle='#007AFF'; drawRoundedRect(ctx,x,imgY+imgH+104,cw,96,16); ctx.fill();
-    ctx.fillStyle='#fff'; ctx.font='800 34px "SF Pro Display",-apple-system,Arial'; ctx.textAlign='center';
-    ctx.fillText(m.price===''?'TBA':MYR(m.price), x+cw/2, imgY+imgH+164);
-    // range + monthly
-    ctx.textAlign='left'; ctx.fillStyle='rgba(255,255,255,.55)'; ctx.font='500 20px -apple-system,Arial';
-    ctx.fillText('Jarak', x, imgY+imgH+240);
-    ctx.fillStyle='#fff'; ctx.font='700 24px -apple-system,Arial'; ctx.fillText(m.range||'—', x, imgY+imgH+270);
-    ctx.fillStyle='rgba(255,255,255,.55)'; ctx.font='500 20px -apple-system,Arial';
-    ctx.fillText('Ansuran / bulan', x, imgY+imgH+312);
-    ctx.fillStyle='#fff'; ctx.font='700 26px -apple-system,Arial';
-    ctx.fillText(m.price===''?'—':MYR(cmpMonthly(num(m.price),0,dp,rate,84)), x, imgY+imgH+344);
+    ctx.fillStyle='#007AFF'; drawRoundedRect(ctx,x,imgY+imgH+104,cw,92,16); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='800 32px "SF Pro Display",-apple-system,Arial'; ctx.textAlign='center';
+    ctx.fillText(m.price===''?'TBA':MYR(m.price), x+cw/2, imgY+imgH+162);
+    // spec rows
+    const specRows=[['Jarak',m.range],['Bateri',m.battery],['Kuasa / tork',m.power],['0–100 km/j',m.accel],['Pengecasan',m.charge]];
+    let sy=imgY+imgH+232;
+    specRows.forEach(([k,v])=>{
+      ctx.textAlign='left'; ctx.fillStyle='rgba(255,255,255,.5)'; ctx.font='500 18px -apple-system,Arial';
+      ctx.fillText(k, x, sy);
+      ctx.fillStyle='#fff'; ctx.font='700 21px -apple-system,Arial';
+      const val=String(v||'—');
+      // shrink long values to fit column width
+      let f=21; ctx.font=`700 ${f}px -apple-system,Arial`;
+      while(ctx.measureText(val).width>cw-8 && f>13){ f--; ctx.font=`700 ${f}px -apple-system,Arial`; }
+      ctx.fillText(val, x, sy+26);
+      ctx.fillStyle='rgba(255,255,255,.08)'; ctx.fillRect(x, sy+38, cw, 1);
+      sy+=58;
+    });
+    // monthly highlight
+    ctx.fillStyle='rgba(255,122,0,.18)'; drawRoundedRect(ctx,x,sy+4,cw,64,12); ctx.fill();
+    ctx.textAlign='left'; ctx.fillStyle='rgba(255,255,255,.7)'; ctx.font='600 17px -apple-system,Arial';
+    ctx.fillText('Ansuran / bulan', x+12, sy+30);
+    ctx.fillStyle='#ff9f0a'; ctx.font='800 26px "SF Pro Display",-apple-system,Arial';
+    ctx.fillText(m.price===''?'—':MYR(cmpMonthly(num(m.price),0,dp,rate,84)), x+12, sy+56);
   });
 
   // footer / consultant
