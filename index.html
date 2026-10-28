@@ -846,6 +846,91 @@ function cmpMonthly(price,rebate,dp,rate,mon){
   if(state.prefs.method==='reducing'){ const r=rate/100/12; return r===0?loan/mon:loan*r/(1-Math.pow(1+r,-mon)); }
   const years=mon/12; return (loan + loan*(rate/100)*years)/mon;
 }
+function drawComparePoster(models){
+  const cv=document.createElement('canvas'); cv.width=PW; cv.height=PH;
+  const ctx=cv.getContext('2d');
+  const bg=ctx.createLinearGradient(0,0,0,PH);
+  bg.addColorStop(0,'#0a1420'); bg.addColorStop(.5,'#0d1b2e'); bg.addColorStop(1,'#0a1420');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,PW,PH);
+  ctx.strokeStyle='rgba(255,255,255,.03)'; ctx.lineWidth=1;
+  for(let i=0;i<PH;i+=48){ ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(PW,i); ctx.stroke(); }
+  for(let i=0;i<PW;i+=48){ ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,PH); ctx.stroke(); }
+  const glow=ctx.createRadialGradient(PW/2,700,40,PW/2,700,640);
+  glow.addColorStop(0,'rgba(0,122,255,.28)'); glow.addColorStop(1,'rgba(0,122,255,0)');
+  ctx.fillStyle=glow; ctx.fillRect(0,280,PW,900);
+
+  // top bar
+  ctx.fillStyle='rgba(255,255,255,.06)'; ctx.fillRect(0,0,PW,150);
+  ctx.fillStyle='#fff'; ctx.font='700 34px "SF Pro Display",-apple-system,Segoe UI,Arial'; ctx.textAlign='left';
+  ctx.fillText('BUILD YOUR DREAMS',70,70);
+  ctx.font='600 22px -apple-system,Segoe UI,Arial'; ctx.fillStyle='rgba(255,255,255,.6)';
+  ctx.fillText('BYD · MALAYSIA',70,112);
+  ctx.fillStyle='#007AFF'; ctx.beginPath(); ctx.arc(PW-90,75,34,0,7); ctx.fill();
+  ctx.fillStyle='#fff'; ctx.font='700 30px -apple-system,Arial'; ctx.textAlign='center'; ctx.fillText('B',PW-90,88);
+
+  // title
+  ctx.textAlign='left'; ctx.fillStyle='#fff'; ctx.font='800 84px "SF Pro Display",-apple-system,Segoe UI,Arial';
+  ctx.fillText('BANDINGKAN',70,290);
+  ctx.font='800 84px "SF Pro Display",-apple-system,Segoe UI,Arial';
+  ctx.fillText('PILIHAN EV',70,388);
+  ctx.fillStyle='#007AFF'; ctx.fillRect(72,424,120,10);
+
+  const N=models.length, pad=60, gap=26;
+  const cw=(PW-pad*2-gap*(N-1))/N;
+  const imgY=480, imgH=300;
+  const dp=state.prefs.dp, rate=state.prefs.rate;
+  models.forEach((m,i)=>{
+    const x=pad+i*(cw+gap);
+    const carImg=imgCache[m.id];
+    if(carImg && carImg.complete && carImg.naturalWidth>0){
+      ctx.save(); drawRoundedRect(ctx,x,imgY,cw,imgH,18); ctx.clip();
+      const ir=carImg.naturalWidth/carImg.naturalHeight, br=cw/imgH;
+      let dw,dh,dx,dy;
+      if(ir>br){ dh=imgH; dw=imgH*ir; dx=x-(dw-cw)/2; dy=imgY; } else { dw=cw; dh=cw/ir; dx=x; dy=imgY-(dh-imgH)/2; }
+      ctx.drawImage(carImg,dx,dy,dw,dh);
+      ctx.restore();
+    } else {
+      ctx.fillStyle='rgba(255,255,255,.08)'; drawRoundedRect(ctx,x,imgY,cw,imgH,18); ctx.fill();
+    }
+    // name / variant
+    ctx.textAlign='left'; ctx.fillStyle='#fff'; ctx.font='700 30px "SF Pro Display",-apple-system,Arial';
+    ctx.fillText(m.name, x, imgY+imgH+52);
+    if(m.variant){ ctx.font='600 21px -apple-system,Arial'; ctx.fillStyle='rgba(255,255,255,.6)'; ctx.fillText(m.variant, x, imgY+imgH+84); }
+    // price
+    ctx.fillStyle='#007AFF'; drawRoundedRect(ctx,x,imgY+imgH+104,cw,96,16); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='800 34px "SF Pro Display",-apple-system,Arial'; ctx.textAlign='center';
+    ctx.fillText(m.price===''?'TBA':MYR(m.price), x+cw/2, imgY+imgH+164);
+    // range + monthly
+    ctx.textAlign='left'; ctx.fillStyle='rgba(255,255,255,.55)'; ctx.font='500 20px -apple-system,Arial';
+    ctx.fillText('Jarak', x, imgY+imgH+240);
+    ctx.fillStyle='#fff'; ctx.font='700 24px -apple-system,Arial'; ctx.fillText(m.range||'—', x, imgY+imgH+270);
+    ctx.fillStyle='rgba(255,255,255,.55)'; ctx.font='500 20px -apple-system,Arial';
+    ctx.fillText('Ansuran / bulan', x, imgY+imgH+312);
+    ctx.fillStyle='#fff'; ctx.font='700 26px -apple-system,Arial';
+    ctx.fillText(m.price===''?'—':MYR(cmpMonthly(num(m.price),0,dp,rate,84)), x, imgY+imgH+344);
+  });
+
+  // footer / consultant
+  const avCx=120, avCy=1840, avR=44;
+  if(meImg && meImg.complete && meImg.naturalWidth>0){
+    ctx.save(); ctx.beginPath(); ctx.arc(avCx,avCy,avR,0,7); ctx.closePath(); ctx.clip();
+    const ir=meImg.naturalWidth/meImg.naturalHeight, dw=avR*2*ir, dh=avR*2;
+    ctx.drawImage(meImg, avCx-dw/2, avCy-dh/2, dw, dh);
+    ctx.restore();
+    ctx.beginPath(); ctx.arc(avCx,avCy,avR,0,7); ctx.lineWidth=3; ctx.strokeStyle='#007AFF'; ctx.stroke();
+  } else {
+    ctx.beginPath(); ctx.arc(avCx,avCy,avR,0,7); ctx.fillStyle='rgba(0,122,255,.25)'; ctx.fill();
+    ctx.fillStyle='#007AFF'; ctx.font='700 34px -apple-system,Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText((ME.name||'?').charAt(0).toUpperCase(),avCx,avCy+2); ctx.textBaseline='alphabetic';
+  }
+  const tx=avCx+avR+22; ctx.textAlign='left';
+  ctx.fillStyle='rgba(255,255,255,.5)'; ctx.font='600 18px -apple-system,Arial'; ctx.fillText('PENASIHAT JUALAN ANDA',tx,avCy-12);
+  ctx.fillStyle='#fff'; ctx.font='700 28px -apple-system,Arial'; ctx.fillText(ME.name,tx,avCy+18);
+  ctx.fillStyle='rgba(255,255,255,.65)'; ctx.font='500 22px -apple-system,Arial'; ctx.fillText(ME.phone,tx,avCy+46);
+  ctx.fillStyle='#007AFF'; ctx.font='700 20px -apple-system,Arial'; ctx.textAlign='right'; ctx.fillText('Jom kenali BYD →',PW-72,avCy+18);
+  return cv;
+}
+
 function renderCompare(){
   const el=document.getElementById('cmpResult');
   if(cmpSel.length===0){ el.innerHTML=''; return; }
@@ -867,12 +952,27 @@ function renderCompare(){
       </colgroup><thead><tr><th>Spec</th>${models.map(m=>`<th>${esc(m.name)} ${esc(m.variant||'')}</th>`).join('')}</tr></thead>
       <tbody>${rows.map(([k,fn,hi])=>`<tr><td>${k}</td>${models.map(m=>`<td class="${hi?'hi':''}">${fn(m)}</td>`).join('')}</tr>`).join('')}
       </tbody></table></div>
-    <div class="btn-row" style="margin-top:14px"><button class="btn green" id="cmpWa">Share comparison</button></div>
+    <div class="btn-row" style="margin-top:14px"><button class="btn" id="cmpPoster">Create comparison poster</button><button class="btn green" id="cmpWa">Share comparison</button></div>
   </div>`;
   document.getElementById('cmpWa').addEventListener('click',()=>{
     const lines=models.map(m=>`• ${label(m)} — ${m.price===''?'price TBA':MYR(m.price)}${m.range?' · '+m.range:''}`);
     const msg=encodeURIComponent('Perbandingan pilihan EV BYD untuk anda:\n\n'+lines.join('\n')+'\n\nHubungi kami untuk sebut harga & ujian pandu!');
     window.open('https://wa.me/'+waPhone(ME.phone)+'?text='+msg,'_blank'); toast('Opening WhatsApp…');
+  });
+  document.getElementById('cmpPoster').addEventListener('click',()=>{
+    const cv=drawComparePoster(models);
+    cv.toBlob(blob=>{
+      const url=URL.createObjectURL(blob);
+      const file=new File([blob],'byd-comparison.jpg',{type:'image/jpeg'});
+      openSaverOverlay(url, ()=>{
+        if(navigator.canShare && navigator.canShare({files:[file]})){
+          navigator.share({files:[file], text:'Pilihan EV BYD untuk anda:'}).catch(()=>{});
+        } else {
+          const lines=models.map(m=>`• ${label(m)} — ${m.price===''?'price TBA':MYR(m.price)}`);
+          window.open('https://wa.me/'+waPhone(ME.phone)+'?text='+encodeURIComponent(lines.join('\n')),'_blank');
+        }
+      });
+    },'image/jpeg',0.92);
   });
 }
 
