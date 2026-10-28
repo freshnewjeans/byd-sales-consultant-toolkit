@@ -507,8 +507,9 @@ function currentOffer(){
   const loanBase = insLoan ? after - deposit : after - deposit - ins;
   const loan = Math.max(0, loanBase);
   const terms = [60,84,108].map(mon=>{
-    const r=rate/12;
-    const monthly = r===0 ? loan/mon : loan*r/(1-Math.pow(1+r,-mon));
+    // Malaysian hire-purchase: flat interest = loan x rate x years; monthly = (loan + interest) / months
+    const years = mon/12;
+    const monthly = (loan + loan*rate*years)/mon;
     return {mon, monthly};
   });
   const upfront = insLoan ? deposit : deposit + ins;
@@ -777,7 +778,7 @@ function renderCmpModels(){
 }
 function cmpMonthly(price,rebate,dp,rate,mon){
   const after=Math.max(0,price-rebate); const deposit=after*dp/100; const loan=after-deposit;
-  const r=rate/100/12; return r===0?loan/mon:loan*r/(1-Math.pow(1+r,-mon));
+  const years=mon/12; return (loan + loan*(rate/100)*years)/mon;
 }
 function renderCompare(){
   const el=document.getElementById('cmpResult');
@@ -826,7 +827,7 @@ function calcTradeIn(){
   const after=Math.max(0,price-rebate);
   const loanNo=after-(after*dp/100);
   const loanTi=Math.max(0,after-(after*dp/100)-value);
-  const monthly=(loan,r)=>r===0?loan/mon:loan*(r/12)/(1-Math.pow(1+r/12,-mon));
+  const monthly=(loan,r)=>{ const years=mon/12; return (loan + loan*(r/100)*years)/mon; };
   const r=rate;
   const mNo=monthly(loanNo,r), mTi=monthly(loanTi,r);
   const save=mNo-mTi;
