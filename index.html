@@ -178,6 +178,21 @@
   .term-tabs .t:active{transform:scale(.95)}
   .cmp-table tbody tr{transition:background .12s}
   .cmp-table tbody tr:hover{background:rgba(0,122,255,.045)}
+  /* 3D movable poster */
+  .poster-stage{perspective:1100px;display:flex;justify-content:center}
+  .poster-preview{transform-style:preserve-3d;transition:transform .35s cubic-bezier(.22,1,.36,1);will-change:transform;cursor:grab}
+  .poster-preview:active{cursor:grabbing}
+  /* subtle model-card tilt on pointer move (desktop) */
+  @media(pointer:fine){
+    .model-card{transition:transform .2s ease,border-color .16s,box-shadow .16s}
+    .model-card.tilt{transition:transform .08s ease-out}
+  }
+  /* soft CTA pulse */
+  @keyframes ctaPulse{0%,100%{box-shadow:0 0 0 0 rgba(37,211,102,.4)}55%{box-shadow:0 0 0 10px rgba(37,211,102,0)}}
+  .btn.green{animation:ctaPulse 2.6s ease-in-out infinite}
+  /* floating badge */
+  @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  .badge{animation:floaty 3.5s ease-in-out infinite}
   .view.active .card,.view.active .kpi{animation:rise .32s ease backwards}
   .view.active .grid>.card:nth-child(2){animation-delay:.05s}
   .view.active .grid>.card:nth-child(3){animation-delay:.1s}
@@ -348,20 +363,20 @@
 
 /* ---------- DATA (2026 Malaysia baseline; all editable) ---------- */
 const BASE = [
-  {id:'atto2',      brand:'BYD',   name:'ATTO 2',        variant:'', price:'', range:'',  battery:'', power:'', accel:'', charge:''},
-  {id:'atto3u',     brand:'BYD',   name:'ATTO 3',        variant:'Ultra', price:126660, range:'480 km', battery:'49.92 kWh', power:'150 kW / 310 Nm', accel:'7.3 s', charge:'11 / 80 kW'},
-  {id:'atto3p',     brand:'BYD',   name:'ATTO 3',        variant:'Premium', price:139835, range:'600 km', battery:'74.88 kWh', power:'230 kW / 380 Nm', accel:'5.5 s', charge:'11 / 220 kW'},
-  {id:'atto3perf',  brand:'BYD',   name:'ATTO 3',        variant:'Performance', price:'', range:'600 km', battery:'74.88 kWh', power:'230 kW / 380 Nm', accel:'5.5 s', charge:'11 / 220 kW'},
-  {id:'m6',         brand:'BYD',   name:'M6',            variant:'Extended', price:123800, range:'520 km', battery:'71.8 kWh', power:'150 kW / 310 Nm', accel:'7.4 s', charge:'11 / 88 kW'},
-  {id:'seal6',      brand:'BYD',   name:'SEAL 6',        variant:'Premium', price:'', range:'', battery:'', power:'', accel:'', charge:''},
-  {id:'sealp',      brand:'BYD',   name:'SEAL',          variant:'Premium', price:'', range:'570 km', battery:'82.5 kWh', power:'230 kW / 360 Nm', accel:'5.9 s', charge:'11 / 150 kW'},
-  {id:'sealperf',   brand:'BYD',   name:'SEAL',          variant:'Performance', price:'', range:'520 km', battery:'82.5 kWh', power:'390 kW / 670 Nm', accel:'3.8 s', charge:'11 / 150 kW'},
+  {id:'atto2',      brand:'BYD',   name:'ATTO 2',        variant:'', price:100000, range:'410 km', battery:'', power:'', accel:'', charge:''},
+  {id:'atto3u',     brand:'BYD',   name:'ATTO 3',        variant:'Ultra', price:125800, range:'480 km', battery:'49.92 kWh', power:'150 kW / 310 Nm', accel:'7.3 s', charge:'11 / 80 kW'},
+  {id:'atto3p',     brand:'BYD',   name:'ATTO 3',        variant:'Premium', price:138800, range:'600 km', battery:'74.88 kWh', power:'230 kW / 380 Nm', accel:'5.5 s', charge:'11 / 220 kW'},
+  {id:'atto3perf',  brand:'BYD',   name:'ATTO 3',        variant:'Performance', price:149800, range:'600 km', battery:'74.88 kWh', power:'330 kW / AWD', accel:'4.9 s', charge:'11 / 220 kW'},
+  {id:'m6',         brand:'BYD',   name:'M6',            variant:'Extended', price:123800, range:'530 km', battery:'71.8 kWh', power:'150 kW / 310 Nm', accel:'8.6 s', charge:'11 / 115 kW'},
+  {id:'seal6',      brand:'BYD',   name:'SEAL 6',        variant:'Premium', price:115800, range:'505 km', battery:'', power:'', accel:'', charge:''},
+  {id:'sealp',      brand:'BYD',   name:'SEAL',          variant:'Premium', price:171800, range:'570 km', battery:'82.5 kWh', power:'230 kW / 360 Nm', accel:'5.9 s', charge:'11 / 150 kW'},
+  {id:'sealperf',   brand:'BYD',   name:'SEAL',          variant:'Performance', price:191800, range:'520 km', battery:'82.5 kWh', power:'390 kW / 670 Nm', accel:'3.8 s', charge:'11 / 150 kW'},
   {id:'sl7dyn',     brand:'BYD',   name:'SEALION 7',     variant:'Dynamic', price:163800, range:'650 km', battery:'91.39 kWh', power:'390 kW / 690 Nm', accel:'4.5 s', charge:'11 / 230 kW'},
   {id:'sl7prem',    brand:'BYD',   name:'SEALION 7',     variant:'Premium', price:188800, range:'650 km', battery:'91.39 kWh', power:'390 kW / 690 Nm', accel:'4.5 s', charge:'11 / 230 kW'},
   {id:'sl7perf',    brand:'BYD',   name:'SEALION 7',     variant:'Performance', price:203800, range:'650 km', battery:'91.39 kWh', power:'390 kW / 690 Nm', accel:'4.5 s', charge:'11 / 230 kW'}
 ];
 
-const LS = { lib:'byd_toolkit_lib_v2', leads:'byd_toolkit_leads_v1', me:'byd_toolkit_me_v1', prefs:'byd_toolkit_prefs_v1' };
+const LS = { lib:'byd_toolkit_lib_v3', leads:'byd_toolkit_leads_v1', me:'byd_toolkit_me_v1', prefs:'byd_toolkit_prefs_v1' };
 const MYR = n => (n===''||n==null||isNaN(n)) ? '—' : 'RM ' + Math.round(n).toLocaleString('en-MY');
 
 let LIB = load(LS.lib, null) || deep(BASE);
@@ -388,6 +403,16 @@ function showView(name){
 document.querySelectorAll('.nav-item, .mnav-item').forEach(n=>{
   n.addEventListener('click',()=>showView(n.dataset.view));
 });
+/* pointer-follow 3D tilt for cards (desktop only) */
+function enableCardTilt(card){
+  if(!matchMedia('(pointer:fine)').matches) return;
+  card.addEventListener('pointermove',e=>{
+    const r=card.getBoundingClientRect();
+    const px=(e.clientX-r.left)/r.width-.5, py=(e.clientY-r.top)/r.height-.5;
+    card.style.transform=`perspective(500px) rotateY(${px*6}deg) rotateX(${-py*6}deg) translateY(-2px)`;
+  });
+  card.addEventListener('pointerleave',()=>{ card.style.transform=''; });
+}
 
 /* ---------- TOAST ---------- */
 let toastT;
@@ -418,6 +443,7 @@ function renderStudioModels(){
     </div>`).join('');
   el.querySelectorAll('.model-card').forEach(c=>{
     c.addEventListener('click',()=>{ state.studioModel=c.dataset.id; renderStudioModels(); renderOfferForm(); renderPoster(); });
+    enableCardTilt(c);
   });
 }
 
@@ -653,6 +679,20 @@ function renderPoster(){
         </div>
       </div></div>`;
   document.getElementById('pp').appendChild(cv);
+  // ---- interactive motion: poster follows cursor / drags (3D tilt) ----
+  const preview=document.getElementById('pp');
+  const stage=preview.closest('.poster-stage');
+  const finePointer=matchMedia('(pointer:fine)').matches;
+  if(stage && finePointer){
+    let raf=null;
+    stage.addEventListener('pointermove',e=>{
+      const r=preview.getBoundingClientRect();
+      const px=(e.clientX-r.left)/r.width-.5, py=(e.clientY-r.top)/r.height-.5;
+      if(raf) cancelAnimationFrame(raf);
+      raf=requestAnimationFrame(()=>{ preview.style.transform=`rotateY(${px*10}deg) rotateX(${-py*10}deg) translateZ(0)`; });
+    });
+    stage.addEventListener('pointerleave',()=>{ preview.style.transform=''; });
+  }
   area.querySelectorAll('.term-tabs .t').forEach(t=>t.addEventListener('click',()=>{ state.term=num(t.dataset.m); renderPoster(); }));
   const isMobile = /iPhone|iPad|iPod|Android|Mobile/i.test(navigator.userAgent) || (navigator.maxTouchPoints>1 && matchMedia('(pointer:coarse)').matches);
   const safeName=(label(o.m)+'-offer').replace(/[^a-z0-9]+/gi,'-').toLowerCase();
@@ -726,12 +766,15 @@ function renderCmpModels(){
       <div class="m-var">${esc(m.variant||'—')}</div>
       <div class="m-price ${m.price===''?'blank':''}">${m.price===''?'set price':MYR(m.price)}</div>
     </div>`).join('');
-  el.querySelectorAll('.model-card').forEach(c=>c.addEventListener('click',()=>{
-    const id=c.dataset.id;
-    cmpSel=cmpSel.includes(id)?cmpSel.filter(x=>x!==id):[...cmpSel,id];
-    if(cmpSel.length>3) cmpSel=cmpSel.slice(-3);
-    renderCmpModels(); renderCompare();
-  }));
+  el.querySelectorAll('.model-card').forEach(c=>{
+    c.addEventListener('click',()=>{
+      const id=c.dataset.id;
+      cmpSel=cmpSel.includes(id)?cmpSel.filter(x=>x!==id):[...cmpSel,id];
+      if(cmpSel.length>3) cmpSel=cmpSel.slice(-3);
+      renderCmpModels(); renderCompare();
+    });
+    enableCardTilt(c);
+  });
 }
 function cmpMonthly(price,rebate,dp,rate,mon){
   const after=Math.max(0,price-rebate); const deposit=after*dp/100; const loan=after-deposit;
