@@ -67,6 +67,12 @@
   .field .unit input{padding-right:40px}
   .row{display:flex;gap:12px}
   .row .field{flex:1}
+  .seg{display:flex;gap:6px;background:rgba(0,0,0,.06);border-radius:10px;padding:4px}
+  .seg button{flex:1;border:none;background:transparent;border-radius:7px;padding:9px 8px;font-size:12.5px;font-weight:600;color:var(--mut);cursor:pointer;font-family:inherit;transition:background .15s,color .15s}
+  .seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+  .adv-photo{width:46px;height:46px;border-radius:50%;flex:none;background:rgba(0,122,255,.12);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:600;cursor:pointer;overflow:hidden;border:2px solid rgba(0,122,255,.3);transition:transform .15s}
+  .adv-photo:hover{transform:scale(1.06)}
+  .adv-photo img{width:100%;height:100%;object-fit:cover}
   .btn{display:inline-flex;align-items:center;gap:8px;background:var(--blue);color:#fff;border:none;border-radius:9px;
     padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:filter .15s,transform .05s}
   .btn:hover{filter:brightness(1.06)}
@@ -381,7 +387,7 @@ const MYR = n => (n===''||n==null||isNaN(n)) ? '—' : 'RM ' + Math.round(n).toL
 let LIB = load(LS.lib, null) || deep(BASE);
 let LEADS = load(LS.leads, []);
 let ME = load(LS.me, {name:'Your Name', phone:'60123456789', showroom:'BYD Showroom'});
-let state = { studioModel:null, term:84, prefs:load(LS.prefs,{dp:10,rate:2.9,ins:0,insLoan:false}) };
+let state = { studioModel:null, term:84, prefs:load(LS.prefs,{dp:10,rate:2.9,ins:0,insLoan:false,method:'flat'}) };
 
 function load(k,d){ try{ const v=JSON.parse(localStorage.getItem(k)); return v===null||v===undefined?d:v; }catch(e){ return d; } }
 function save(k,v){ localStorage.setItem(k,JSON.stringify(v)); markSaved(); }
@@ -462,6 +468,12 @@ function renderOfferForm(){
       <div class="field"><label>Down payment %</label><div class="unit"><input type="number" id="fDp" value="${p.dp}" min="0" max="100" step="1"><span>%</span></div></div>
       <div class="field"><label>Bank rate / year (%)</label><div class="unit"><input type="number" id="fRate" value="${p.rate}" step="0.05"><span>%</span></div></div>
     </div>
+    <div class="field"><label>Loan interest method</label>
+      <div class="seg" id="fMethod">
+        <button type="button" data-v="flat" class="${p.method!=='reducing'?'on':''}">Flat rate · Malaysian HP</button>
+        <button type="button" data-v="reducing" class="${p.method==='reducing'?'on':''}">Reducing balance</button>
+      </div>
+    </div>
     <div class="row">
       <div class="field"><label>Insurance (RM)</label><div class="unit"><input type="number" id="fIns" value="${p.ins}" min="0" step="100"><span>RM</span></div></div>
       <div class="field" style="display:flex;align-items:flex-end;padding-bottom:2px">
@@ -475,7 +487,9 @@ function renderOfferForm(){
         <div class="field"><input type="date" id="fValidUntil"></div>
       </div></div>
     <div class="field"><label>Sales advisor shown on poster</label>
-      <div class="row">
+      <div class="row" style="align-items:center;gap:12px">
+        <div class="adv-photo" id="advPhoto" title="Upload your photo">${ME.photo?`<img src="${ME.photo}" alt="you">`:'<span>+</span>'}</div>
+        <input type="file" id="fPhoto" accept="image/*" hidden>
         <div class="field"><input type="text" id="fMeName" value="${esc(ME.name)}" placeholder="Your name"></div>
         <div class="field"><input type="tel" id="fMePhone" value="${esc(ME.phone)}" placeholder="WhatsApp no."></div>
       </div></div>
@@ -484,11 +498,25 @@ function renderOfferForm(){
   ['fExtra','fMeName','fMePhone'].forEach(id=>document.getElementById(id).addEventListener('input',()=>renderPoster()));
   document.getElementById('fInsLoan').addEventListener('change',()=>{ persistPrefs(); renderPoster(); });
   ['fValidFrom','fValidUntil'].forEach(id=>document.getElementById(id).addEventListener('change',()=>renderPoster()));
+  document.querySelectorAll('#fMethod button').forEach(b=>b.addEventListener('click',()=>{
+    state.prefs.method=b.dataset.v;
+    document.querySelectorAll('#fMethod button').forEach(x=>x.classList.toggle('on',x===b));
+    persistPrefs(); renderPoster();
+  }));
+  const advPhoto=document.getElementById('advPhoto');
+  const fPhoto=document.getElementById('fPhoto');
+  advPhoto.addEventListener('click',()=>fPhoto.click());
+  fPhoto.addEventListener('change',()=>{
+    const file=fPhoto.files[0]; if(!file) return;
+    const rd=new FileReader();
+    rd.onload=()=>{ ME.photo=rd.result; save(LS.me,ME); meImg=Object.assign(new Image(),{src:ME.photo}); renderOfferForm(); renderPoster(); };
+    rd.readAsDataURL(file);
+  });
 }
 
 function persistPrefs(){
   const g=id=>document.getElementById(id);
-  state.prefs = { dp:num(g('fDp').value)||0, rate:num(g('fRate').value)||0, ins:num(g('fIns').value)||0, insLoan:g('fInsLoan').checked };
+  state.prefs = { dp:num(g('fDp').value)||0, rate:num(g('fRate').value)||0, ins:num(g('fIns').value)||0, insLoan:g('fInsLoan').checked, method:state.prefs.method||'flat' };
   save(LS.prefs, state.prefs);
 }
 
@@ -507,9 +535,15 @@ function currentOffer(){
   const loanBase = insLoan ? after - deposit : after - deposit - ins;
   const loan = Math.max(0, loanBase);
   const terms = [60,84,108].map(mon=>{
-    // Malaysian hire-purchase: flat interest = loan x rate x years; monthly = (loan + interest) / months
     const years = mon/12;
-    const monthly = (loan + loan*rate*years)/mon;
+    let monthly;
+    if(state.prefs.method==='reducing'){
+      const r=rate/12;
+      monthly = r===0 ? loan/mon : loan*r/(1-Math.pow(1+r,-mon));
+    } else {
+      // Flat rate (Malaysian hire-purchase): interest = loan x rate x years
+      monthly = (loan + loan*rate*years)/mon;
+    }
     return {mon, monthly};
   });
   const upfront = insLoan ? deposit : deposit + ins;
@@ -525,6 +559,7 @@ const PW=1080, PH=1920;
 const CAR_IMG={ atto2:'assets/atto2.jpg', atto3u:'assets/atto3.jpg', atto3p:'assets/atto3.jpg', atto3perf:'assets/atto3.jpg', m6:'assets/m6.jpg', seal6:'assets/seal6.jpg', sealp:'assets/seal.jpg', sealperf:'assets/seal.jpg', sl7dyn:'assets/sealion7.jpg', sl7prem:'assets/sealion7.jpg', sl7perf:'assets/sealion7.jpg' };
 const imgCache={};
 Object.keys(CAR_IMG).forEach(id=>{ const im=new Image(); im.src=CAR_IMG[id]; imgCache[id]=im; });
+let meImg = ME.photo ? Object.assign(new Image(),{src:ME.photo}) : null;
 function hex2rgba(hex,a){ const h=hex.replace('#',''); const n=parseInt(h,16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`; }
 
 function drawRoundedRect(ctx,x,y,w,h,r){
@@ -650,15 +685,29 @@ function drawPoster(o){
   ctx.fillStyle='#fff'; ctx.font='800 52px "SF Pro Display",-apple-system,Segoe UI,Arial'; ctx.textAlign='right';
   ctx.fillText(MYR(t.monthly),PW-100,ty+72);
 
-  // footer / consultant
-  ctx.fillStyle='rgba(255,255,255,.5)'; ctx.font='600 24px -apple-system,Segoe UI,Arial'; ctx.textAlign='left';
-  ctx.fillText('PENASIHAT JUALAN ANDA',72,1880);
-  ctx.fillStyle='#fff'; ctx.font='700 30px -apple-system,Segoe UI,Arial';
-  ctx.fillText(o.meName,72,1922);
-  ctx.fillStyle='rgba(255,255,255,.6)'; ctx.font='500 24px -apple-system,Segoe UI,Arial';
-  ctx.fillText(o.mePhone,480,1922);
-  ctx.fillStyle='#007AFF'; ctx.font='700 22px -apple-system,Segoe UI,Arial'; ctx.textAlign='right';
-  ctx.fillText('Jom kenali BYD →',PW-72,1922);
+  // footer / consultant (with circular photo)
+  const avCx=120, avCy=1872, avR=44;
+  if(meImg && meImg.complete && meImg.naturalWidth>0){
+    ctx.save(); ctx.beginPath(); ctx.arc(avCx,avCy,avR,0,7); ctx.closePath(); ctx.clip();
+    const ir=meImg.naturalWidth/meImg.naturalHeight, dw=avR*2*ir, dh=avR*2;
+    ctx.drawImage(meImg, avCx-dw/2, avCy-dh/2, dw, dh);
+    ctx.restore();
+    ctx.beginPath(); ctx.arc(avCx,avCy,avR,0,7); ctx.lineWidth=3; ctx.strokeStyle='#007AFF'; ctx.stroke();
+  } else {
+    ctx.beginPath(); ctx.arc(avCx,avCy,avR,0,7); ctx.fillStyle='rgba(0,122,255,.25)'; ctx.fill();
+    ctx.fillStyle='#007AFF'; ctx.font='700 34px -apple-system,Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText((o.meName||'?').charAt(0).toUpperCase(),avCx,avCy+2); ctx.textBaseline='alphabetic';
+  }
+  const tx=avCx+avR+22;
+  ctx.textAlign='left';
+  ctx.fillStyle='rgba(255,255,255,.5)'; ctx.font='600 18px -apple-system,Segoe UI,Arial';
+  ctx.fillText('PENASIHAT JUALAN ANDA',tx,avCy-12);
+  ctx.fillStyle='#fff'; ctx.font='700 28px -apple-system,Segoe UI,Arial';
+  ctx.fillText(o.meName,tx,avCy+18);
+  ctx.fillStyle='rgba(255,255,255,.65)'; ctx.font='500 22px -apple-system,Segoe UI,Arial';
+  ctx.fillText(o.mePhone,tx,avCy+46);
+  ctx.fillStyle='#007AFF'; ctx.font='700 20px -apple-system,Segoe UI,Arial'; ctx.textAlign='right';
+  ctx.fillText('Jom kenali BYD →',PW-72,avCy+18);
 
   if(o.validUntil){ const d=daysUntil(o.validUntil); if(d!==null && d>=0){
     ctx.fillStyle='#ff9f0a'; ctx.font='700 24px -apple-system,Segoe UI,Arial'; ctx.textAlign='left';
@@ -794,6 +843,7 @@ function renderCmpModels(){
 }
 function cmpMonthly(price,rebate,dp,rate,mon){
   const after=Math.max(0,price-rebate); const deposit=after*dp/100; const loan=after-deposit;
+  if(state.prefs.method==='reducing'){ const r=rate/100/12; return r===0?loan/mon:loan*r/(1-Math.pow(1+r,-mon)); }
   const years=mon/12; return (loan + loan*(rate/100)*years)/mon;
 }
 function renderCompare(){
@@ -843,7 +893,10 @@ function calcTradeIn(){
   const after=Math.max(0,price-rebate);
   const loanNo=after-(after*dp/100);
   const loanTi=Math.max(0,after-(after*dp/100)-value);
-  const monthly=(loan,r)=>{ const years=mon/12; return (loan + loan*(r/100)*years)/mon; };
+  const monthly=(loan,r)=>{
+    if(state.prefs.method==='reducing'){ const rr=r/100/12; return rr===0?loan/mon:loan*rr/(1-Math.pow(1+rr,-mon)); }
+    const years=mon/12; return (loan + loan*(r/100)*years)/mon;
+  };
   const r=rate;
   const mNo=monthly(loanNo,r), mTi=monthly(loanTi,r);
   const save=mNo-mTi;
