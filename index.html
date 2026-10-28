@@ -522,6 +522,9 @@ function currentOffer(){
    POSTER — canvas rendered 1080×1920 (9:16)
    ========================================================= */
 const PW=1080, PH=1920;
+const CAR_IMG={ atto2:'assets/atto2.jpg', atto3u:'assets/atto3.jpg', atto3p:'assets/atto3.jpg', atto3perf:'assets/atto3.jpg', m6:'assets/m6.jpg', seal6:'assets/seal6.jpg', sealp:'assets/seal.jpg', sealperf:'assets/seal.jpg', sl7dyn:'assets/sealion7.jpg', sl7prem:'assets/sealion7.jpg', sl7perf:'assets/sealion7.jpg' };
+const imgCache={};
+Object.keys(CAR_IMG).forEach(id=>{ const im=new Image(); im.src=CAR_IMG[id]; imgCache[id]=im; });
 function hex2rgba(hex,a){ const h=hex.replace('#',''); const n=parseInt(h,16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`; }
 
 function drawRoundedRect(ctx,x,y,w,h,r){
@@ -582,8 +585,21 @@ function drawPoster(o){
   // accent line
   ctx.fillStyle='#007AFF'; ctx.fillRect(72,426,120,10);
 
-  // car illustration
-  drawCarSilhouette(ctx,250,540,7.6,'#1e3a5f');
+  // vehicle photo banner
+  const carImg = imgCache[m.id];
+  if(carImg && carImg.complete && carImg.naturalWidth>0){
+    const px=72, py=452, pw=PW-144, ph=230;
+    ctx.save(); drawRoundedRect(ctx,px,py,pw,ph,22); ctx.clip();
+    const ir=carImg.naturalWidth/carImg.naturalHeight, br=pw/ph;
+    let dw,dh,dx,dy;
+    if(ir>br){ dh=ph; dw=ph*ir; dx=px-(dw-pw)/2; dy=py; } else { dw=pw; dh=pw/ir; dx=px; dy=py-(dh-ph)/2; }
+    ctx.drawImage(carImg,dx,dy,dw,dh);
+    const fade=ctx.createLinearGradient(0,py+ph-70,0,py+ph); fade.addColorStop(0,'rgba(13,27,46,0)'); fade.addColorStop(1,'rgba(13,27,46,.9)');
+    ctx.fillStyle=fade; ctx.fillRect(px,py+ph-70,pw,70);
+    ctx.restore();
+  } else {
+    drawCarSilhouette(ctx,250,540,7.6,'#1e3a5f');
+  }
   // price chip
   const chip=ctx.createLinearGradient(PW-500,0,PW,0); chip.addColorStop(0,'#007AFF'); chip.addColorStop(1,'#0A84FF');
   ctx.fillStyle=chip; drawRoundedRect(ctx,72,690,PW-144,170,22); ctx.fill();
@@ -607,7 +623,7 @@ function drawPoster(o){
     y+=62;
   });
   ctx.fillStyle='rgba(255,255,255,.35)'; ctx.font='500 18px -apple-system,Segoe UI,Arial'; ctx.textAlign='left';
-  ctx.fillText('Gambar ilustrasi · Varian mungkin berbeza',72,y+8);
+  ctx.fillText('Gambar untuk rujukan · Spesifikasi varian sebenar mungkin berbeza',72,y+8);
 
   // financing block
   const fy=1330;
